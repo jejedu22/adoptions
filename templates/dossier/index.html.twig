@@ -1,25 +1,21 @@
 {% extends 'base.html.twig' %}
+{% import '_macros.html.twig' as m %}
 {% block title %}Dossiers{% endblock %}
 {% block body %}
-<h1>Dossiers d'adoption</h1>
-<form method="get" class="actions">
-    <input type="text" name="q" value="{{ q }}" placeholder="Numéro, nom, prénom ou ville" style="max-width:320px">
-    <button class="btn sec" type="submit">Rechercher</button>
-    <a class="btn" href="{{ path('dossier_new') }}">Nouveau dossier</a>
-</form>
-<table>
-    <thead><tr><th>Numéro</th><th>Demandeur</th><th>Ville</th><th>Demandes</th></tr></thead>
+<div class="pagehead"><div><h1>Dossiers</h1><p class="sub">{{ compteurs.tous }} dossier(s){% if q %} pour « {{ q }} »{% endif %}</p></div>
+    <a class="btn p" href="{{ path('dossier_new') }}">+ Nouveau dossier</a></div>
+<form method="get" class="search" style="max-width:420px;display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 12px;background:var(--card)">
+    🔍 <input name="q" value="{{ q }}" placeholder="Filtrer : nom, ville, n° de dossier" style="all:unset;flex:1"><input type="hidden" name="statut" value="{{ filtre }}"></form>
+<div class="chips">{% for k, l in filtres %}<a class="chip {{ k == filtre ? 'on' }}" href="{{ path('dossier_index', {statut: k, q: q}) }}">{{ l }} ({{ compteurs[k] }})</a>{% endfor %}</div>
+<div class="card" style="padding:6px"><table class="list">
+    <thead><tr><th>Dossier</th><th>Demandeur</th><th>Ville</th><th>Statut</th><th>Prochaine étape</th></tr></thead>
     <tbody>
-    {% for d in dossiers %}
-        <tr>
-            <td><a href="{{ path('dossier_show', {id: d.id}) }}">{{ d.numero }}</a></td>
-            <td>{% for i in d.individus %}{{ i.nom }} {{ i.prenom }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-            <td>{{ d.ville }}</td>
-            <td>{{ d.demandes|length }}</td>
-        </tr>
-    {% else %}
-        <tr><td colspan="4" class="muted">Aucun dossier.</td></tr>
-    {% endfor %}
-    </tbody>
-</table>
+    {% for l in lignes %}
+        <tr onclick="location.href='{{ path('dossier_show', {id: l.dossier.id}) }}'">
+            <td><a class="strong" href="{{ path('dossier_show', {id: l.dossier.id}) }}">{{ l.dossier.numero }}</a></td>
+            <td><b>{{ l.dossier.libelle }}</b></td><td>{{ l.dossier.ville }}</td>
+            <td>{% if l.statut %}{{ m.badge(l.statut) }}{% else %}<span class="badge b-mute">Sans demande</span>{% endif %}</td>
+            <td>{% if l.retard %}<span style="color:var(--bad)">⚠ En retard</span> · {% endif %}{{ l.statut ? l.statut.prochaineEtape : '' }}</td></tr>
+    {% else %}<tr><td colspan="5" class="empty">Aucun dossier ne correspond. <a href="{{ path('dossier_new') }}">Créer un dossier</a></td></tr>{% endfor %}
+    </tbody></table></div>
 {% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% import '_macros.html.twig' as m %}
+{% block title %}Commissions{% endblock %}
+{% block body %}
+<h1>Commissions et recours</h1><p class="sub">Décisions en attente de saisie, puis historique récent.</p>
+{% macro table(decisions, vide) %}
+{% import '_macros.html.twig' as m %}
+<div class="card" style="padding:6px"><table class="list">
+    <thead><tr><th>Dossier</th><th>Type</th><th>Commission</th><th>Prévue</th><th>Décision</th><th></th></tr></thead>
+    <tbody>
+    {% for x in decisions %}
+        <tr><td><a class="strong" href="{{ path('dossier_show', {id: x.demande.dossier.id}) }}">{{ x.demande.dossier.libelle }}</a></td>
+            <td>{% if x.provenance == -2 %}Commission initiale{% elseif x.provenance == -1 %}Recours administratif{% else %}{{ x.typeRecours ?: 'Recours contentieux' }}{% endif %}</td>
+            <td>{{ m.date(x.dateCommission) }}</td><td>{{ m.date(x.dateDecisionPrevue) }}</td><td>{{ enum_label(x.deliberation) }}</td>
+            <td class="right"><a class="btn s" href="{{ path('crud_edit', {slug: 'decisions', id: x.id}) }}">{{ x.deliberation == 0 ? 'Saisir' : 'Modifier' }}</a></td></tr>
+    {% else %}<tr><td colspan="6" class="empty">{{ vide }}</td></tr>{% endfor %}
+    </tbody></table></div>
+{% endmacro %}
+<h2>À saisir</h2>{{ _self.table(aVenir, 'Aucune décision en attente.') }}
+<h2 style="margin-top:28px">Décisions récentes</h2>{{ _self.table(passees, 'Aucune décision enregistrée.') }}
+{% endblock %}

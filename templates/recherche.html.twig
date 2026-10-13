@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% block title %}Recherche{% endblock %}
+{% block body %}
+<h1>Recherche</h1>
+{% if q|length < 2 %}<p class="sub">Saisissez au moins 2 caractères : nom, prénom, ville, téléphone, n° de dossier ou de demande.</p>
+{% else %}
+<p class="sub">{{ dossiers|length + demandes|length }} résultat(s) pour « {{ q }} »</p>
+{% if demandes %}<h2>Demandes</h2><div class="card">{% for d in demandes %}<div class="task"><div class="t"><a href="{{ path('demande_show', {id: d.id}) }}"><b>Demande n° {{ d.numero }}</b></a> — {{ d.dossier.libelle }}</div></div>{% endfor %}</div>{% endif %}
+<h2 style="margin-top:20px">Dossiers</h2>
+<div class="card">{% for d in dossiers %}<div class="task"><div class="t"><a href="{{ path('dossier_show', {id: d.id}) }}"><b>{{ d.libelle }}</b></a><small>Dossier {{ d.numero }}{% if d.ville %} · {{ d.ville }}{% endif %}</small></div></div>
+{% else %}<p class="empty">Aucun dossier ne correspond.</p>{% endfor %}</div>
+{% endif %}
+{% endblock %}

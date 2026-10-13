@@ -1,9 +1,10 @@
 {% extends 'base.html.twig' %}
-{% block title %}Dossier{% endblock %}
+{% block title %}Dossier {{ dossier.numero }}{% endblock %}
 {% block body %}
-<h1>{{ dossier.id ? 'Dossier ' ~ dossier.numero : 'Nouveau dossier' }}</h1>
+<p class="sub" style="margin:0 0 8px"><a href="{{ path('dossier_show', {id: dossier.id}) }}">← {{ dossier.libelle }}</a></p>
+<h1>Modifier le dossier {{ dossier.numero }}</h1>
 {{ form_start(form) }}
-    <div class="card">{{ form_widget(form) }}</div>
-    <div class="actions"><button class="btn" type="submit">Valider</button><a class="btn sec" href="{{ dossier.id ? path('dossier_show', {id: dossier.id}) : path('dossier_index') }}">Annuler</a></div>
+    <div class="card" style="max-width:780px"><div class="formgrid">{{ form_widget(form) }}</div>
+    <div class="foot"><a class="btn" href="{{ path('dossier_show', {id: dossier.id}) }}">Annuler</a><button class="btn p" type="submit">Enregistrer</button></div></div>
 {{ form_end(form) }}
 {% endblock %}

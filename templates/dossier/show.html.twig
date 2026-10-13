@@ -1,52 +1,72 @@
 {% extends 'base.html.twig' %}
-{% block title %}Dossier {{ dossier.numero }}{% endblock %}
+{% import '_macros.html.twig' as m %}
+{% block title %}{{ dossier.libelle }}{% endblock %}
 {% block body %}
-<h1>Dossier {{ dossier.numero }}</h1>
-<div class="grid">
-    <div class="card"><dl>
-        <dt>Adresse</dt><dd>{{ dossier.adresse1 }} {{ dossier.adresse2 }}<br>{{ dossier.codePostal }} {{ dossier.ville }}</dd>
-        <dt>Téléphone</dt><dd>{{ dossier.telephone }}</dd>
-        <dt>Département</dt><dd>{{ dossier.departement }}</dd>
-        <dt>Commune</dt><dd>{{ dossier.commune }}</dd>
-        <dt>Canton</dt><dd>{{ dossier.canton }}</dd>
-        <dt>Circonscription</dt><dd>{{ dossier.circonscription }}</dd>
-        <dt>Réinstruction</dt><dd>{{ dossier.reinstruction ? 'Oui' : 'Non' }}</dd>
-    </dl></div>
-    <div class="card"><dl>
-        <dt>Situation familiale</dt><dd>{{ dossier.situationFamiliale }}</dd>
-        <dt>Régime matrimonial</dt><dd>{{ dossier.regimeMatrimonial }}</dd>
-        <dt>Mariage</dt><dd>{{ dossier.dateMariage ? dossier.dateMariage|date('d/m/Y') }} {{ dossier.lieuMariage }}</dd>
-    </dl></div>
-</div>
-<div class="actions">
+<p class="sub" style="margin:0 0 8px"><a href="{{ path('dossier_index') }}">← Dossiers</a></p>
+<div class="hero">
+    <div class="avatar">{{ dossier.initiales }}</div>
+    <div style="flex:1"><h1 style="margin:0">{{ dossier.libelle }}</h1>
+        <span class="sub" style="margin:0">Dossier {{ dossier.numero }}{% if dossier.ville %} · {{ dossier.ville }}{% endif %}{% if dossier.telephone %} · {{ dossier.telephone }}{% endif %}</span></div>
+    {% if statut %}{{ m.badge(statut) }}{% endif %}
     <a class="btn" href="{{ path('dossier_edit', {id: dossier.id}) }}">Modifier</a>
-    <form method="post" action="{{ path('dossier_delete', {id: dossier.id}) }}" onsubmit="return confirm('Supprimer ce dossier et tout son contenu ?')">
-        <input type="hidden" name="_token" value="{{ csrf_token('delete_dossier' ~ dossier.id) }}">
-        <button class="btn danger" type="submit">Supprimer</button>
-    </form>
+    <a class="btn p" href="{{ path('demande_new', {dossier: dossier.id}) }}">+ Nouvelle demande</a>
 </div>
 
-<h2>Individus</h2>
-<table>
-    <thead><tr><th>Type</th><th>Nom</th><th>Prénom</th><th>Naissance</th><th></th></tr></thead>
-    <tbody>
-    {% for i in dossier.individus %}
-        <tr><td>{{ i.type == 'DE' ? 'Demandeur' : i.type }}</td><td>{{ i.nom }}</td><td>{{ i.prenom }}</td><td>{{ i.dateNaissance ? i.dateNaissance|date('d/m/Y') }}</td>
-            <td class="actions"><a href="{{ path('crud_edit', {slug: 'individus', id: i.id}) }}">Modifier</a>
-            <form method="post" action="{{ path('crud_delete', {slug: 'individus', id: i.id}) }}" onsubmit="return confirm('Supprimer ?')"><input type="hidden" name="_token" value="{{ csrf_token('deleteindividus' ~ i.id) }}"><button class="btn danger" type="submit">Supprimer</button></form></td></tr>
-    {% else %}<tr><td colspan="5" class="muted">Aucun individu.</td></tr>{% endfor %}
-    </tbody>
-</table>
-<div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'individus', parent: dossier.id}) }}">Ajouter un individu</a></div>
+{% if statut and statut.prochaineEtape %}
+<div class="next"><span style="font-size:1.6rem">➡️</span><div class="t"><b>Prochaine étape : {{ statut.prochaineEtape }}</b></div>
+    {% set rapport = null %}{% for t in taches %}{% if not rapport and t.interventionId %}{% set rapport = t %}{% endif %}{% endfor %}
+    {% if rapport %}<form method="post" action="{{ path('intervention_recu', {id: rapport.interventionId}) }}" style="margin:0">
+        <input type="hidden" name="_token" value="{{ csrf_token('recu' ~ rapport.interventionId) }}"><input type="hidden" name="retour" value="{{ path('dossier_show', {id: dossier.id}) }}">
+        <button class="btn p" type="submit">Enregistrer la réception</button></form>{% endif %}
+    {% if demande %}<a class="btn" href="{{ path('demande_show', {id: demande.id}) }}">Ouvrir la demande</a>{% endif %}
+</div>
+{% endif %}
 
-<h2>Demandes</h2>
-<table>
-    <thead><tr><th>N°</th><th>Date</th><th>Nature</th><th>Agrément</th><th></th></tr></thead>
-    <tbody>
-    {% for d in dossier.demandes %}
-        <tr><td>{{ d.numero }}</td><td>{{ d.dateDemande ? d.dateDemande|date('d/m/Y') }}</td><td>{{ d.nature }}</td><td>{{ d.dateAgrement ? d.dateAgrement|date('d/m/Y') : '—' }}</td><td><a href="{{ path('demande_show', {id: d.id}) }}">Ouvrir</a></td></tr>
-    {% else %}<tr><td colspan="5" class="muted">Aucune demande.</td></tr>{% endfor %}
-    </tbody>
-</table>
-<div class="actions"><a class="btn sec" href="{{ path('demande_new', {dossier: dossier.id}) }}">Nouvelle demande</a></div>
+<div class="tabs" role="tablist">
+    <a class="tab on" href="#resume" data-tab="resume">Résumé</a>
+    <a class="tab" href="#demandes" data-tab="demandes">Demandes ({{ dossier.demandes|length }})</a>
+    <a class="tab" href="#personnes" data-tab="personnes">Personnes ({{ dossier.individus|length }})</a>
+    <a class="tab" href="#placements" data-tab="placements">Placements ({{ placements|length }})</a>
+</div>
+
+<div class="tabpane" id="tab-resume">
+    {% if demande and statut %}
+    <div class="card"><h2>Demande n° {{ demande.numero }}{% if demande.nature %} — {{ demande.nature }}{% endif %}{% if demande.type %}, {{ demande.type|lower }}{% endif %}</h2>{{ m.frise(statut) }}</div>
+    <div class="grid g2" style="margin-top:14px">
+        <div class="card"><h2>Échéancier</h2>
+            <ul class="tl">
+                {% for label, date in echeancier %}<li><b>{{ label }}</b><small>prévu le {{ m.date(date) }}</small></li>{% endfor %}
+                {% for t in taches %}<li><b>{{ t.libelle }}</b> <span class="badge b-{{ t.ton }}">{{ t.etiquette }}</span><small>{{ t.detail }}</small></li>{% endfor %}
+            </ul></div>
+        <div class="card"><h2>Résumé</h2><dl>
+            <dt>Souhait</dt><dd>{{ demande.nombreEnfants ?? '—' }} enfant(s){% if demande.fratrie %}, fratrie acceptée{% endif %}</dd>
+            <dt>Origine</dt><dd>{{ demande.origineEthnique ?: '—' }}</dd>
+            <dt>Agrément</dt><dd>{{ demande.dateAgrement ? demande.dateAgrement|date('d/m/Y') : 'pas encore' }}</dd>
+            <dt>Réinstruction</dt><dd>{{ dossier.reinstruction ? 'Oui' : 'Non' }}</dd>
+            <dt>Adresse</dt><dd>{{ dossier.adresse1 }} {{ dossier.codePostal }} {{ dossier.ville }}</dd>
+            <dt>Circonscription</dt><dd>{{ dossier.circonscription ?: '—' }}</dd></dl></div>
+    </div>
+    {% else %}<div class="card"><p class="empty">Ce dossier n'a pas encore de demande. <a href="{{ path('demande_new', {dossier: dossier.id}) }}">Créer la première demande</a></p></div>{% endif %}
+</div>
+
+<div class="tabpane" id="tab-demandes"><div class="card" style="padding:6px"><table class="list">
+    <thead><tr><th>N°</th><th>Date</th><th>Nature</th><th>Statut</th><th>Agrément</th><th></th></tr></thead><tbody>
+    {% for d in dossier.demandes %}<tr><td>{{ d.numero }}</td><td>{{ m.date(d.dateDemande) }}</td><td>{{ d.nature ?: '—' }}</td><td>{{ m.badge(statuts[loop.index0]) }}</td><td>{{ m.date(d.dateAgrement) }}</td><td class="right"><a class="btn s" href="{{ path('demande_show', {id: d.id}) }}">Ouvrir</a></td></tr>
+    {% else %}<tr><td colspan="6" class="empty">Aucune demande.</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div class="tabpane" id="tab-personnes"><div class="card" style="padding:6px"><table class="list">
+    <thead><tr><th>Rôle</th><th>Nom</th><th>Prénom</th><th>Naissance</th><th></th></tr></thead><tbody>
+    {% for i in dossier.individus %}<tr><td>{{ i.type == 'DE' ? 'Demandeur' : (i.type == 'CO' ? 'Conjoint' : i.type) }}</td><td>{{ i.nom }}</td><td>{{ i.prenom }}</td><td>{{ m.date(i.dateNaissance) }}</td>
+        <td class="right row-actions"><a href="{{ path('crud_edit', {slug: 'individus', id: i.id}) }}">Modifier</a>
+        <form method="post" action="{{ path('crud_delete', {slug: 'individus', id: i.id}) }}" onsubmit="return confirm('Supprimer cette personne ?')"><input type="hidden" name="_token" value="{{ csrf_token('deleteindividus' ~ i.id) }}"><button class="btn s danger" type="submit">Supprimer</button></form></td></tr>
+    {% else %}<tr><td colspan="5" class="empty">Aucune personne.</td></tr>{% endfor %}</tbody></table></div>
+    <p><a class="btn" href="{{ path('crud_new', {slug: 'individus', parent: dossier.id}) }}">+ Ajouter une personne</a></p></div>
+
+<div class="tabpane" id="tab-placements"><div class="card" style="padding:6px"><table class="list">
+    <thead><tr><th>Enfant</th><th>Placé le</th><th>Jugement</th><th>Œuvre</th><th></th></tr></thead><tbody>
+    {% for p in placements %}<tr><td>{{ p.nomEnfant }} {{ p.prenomEnfant }}</td><td>{{ m.date(p.datePlacement) }}</td><td>{{ m.date(p.dateJugement) }}</td><td>{{ p.oeuvre ?: '—' }}</td><td class="right"><a class="btn s" href="{{ path('demande_show', {id: p.demande.id}) }}">Ouvrir</a></td></tr>
+    {% else %}<tr><td colspan="5" class="empty">Aucun placement.</td></tr>{% endfor %}</tbody></table></div></div>
+
+<form method="post" action="{{ path('dossier_delete', {id: dossier.id}) }}" onsubmit="return confirm('Supprimer ce dossier et tout son contenu ?')" style="margin-top:32px">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete_dossier' ~ dossier.id) }}"><button class="btn s danger" type="submit">Supprimer ce dossier</button></form>
 {% endblock %}
