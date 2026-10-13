@@ -62,4 +62,13 @@ class SmokeTest extends WebTestCase
         $demande = $em->getRepository(\App\Entity\Demande::class)->findOneBy([]);
         self::assertSame('2024-03-10', $demande->getDateAgrement()?->format('Y-m-d'));
     }
+
+    public function testEnTetesDuProxyInverse(): void
+    {
+        $client = static::createClient();
+        $client->loginUser(new InMemoryUser('admin', $_SERVER['APP_ADMIN_PASSWORD_HASH'], ['ROLE_USER']));
+        $client->request('GET', '/', server: ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_FORWARDED_PROTO' => 'https', 'HTTP_X_FORWARDED_HOST' => 'adoptions.example.org', 'HTTP_X_FORWARDED_PORT' => '443']);
+        self::assertTrue($client->getRequest()->isSecure());
+        self::assertSame('adoptions.example.org', $client->getRequest()->getHost());
+    }
 }

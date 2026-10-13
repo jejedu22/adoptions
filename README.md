@@ -32,15 +32,23 @@ La base est SQLite par défaut (`DATABASE_URL` dans `.env`). Pour MySQL, changez
 | Échéancier et paramètres | `App\Service\EcheancierCalculator`, entité `Parametre` |
 | Interventions, enfants souhaités, placements, surveillances | entités filles de `Demande` / `Placement` |
 
-## Docker
+## Docker (derrière Traefik)
 
 ```bash
-cp .env.docker.example .env.docker      # puis renseigner APP_SECRET, DB_PASSWORD et, si besoin, APP_ADMIN_PASSWORD_HASH
+cp .env.docker.example .env.docker      # renseigner APP_HOST, APP_SECRET, DB_PASSWORD, APP_ADMIN_PASSWORD_HASH
 docker compose --env-file .env.docker up -d --build
 ```
 
-L'application est servie sur http://localhost:8080 (variable `APP_PORT`), avec une base MySQL 8.4 persistée dans le
-volume `db_data`. Au démarrage, `docker/entrypoint.sh` attend la base, crée ou met à jour le schéma
+Aucun port n'est publié : l'application est joignable uniquement via Traefik, par les labels du service `app`
+(routeur `Host(APP_HOST)`, point d'entrée `websecure`, TLS avec le résolveur `TRAEFIK_CERTRESOLVER`, port interne 80).
+Le service `app` rejoint le réseau externe `TRAEFIK_NETWORK` (celui de Traefik, voir `docker network ls`) ; MySQL reste
+sur le réseau interne, avec un volume `db_data`. Adaptez les noms d'entrypoint et de résolveur à votre configuration Traefik ;
+la redirection HTTP → HTTPS se règle dans Traefik.
+
+Symfony fait confiance aux en-têtes `X-Forwarded-*` (variable `TRUSTED_PROXIES`, par défaut l'adresse du proxy qui se connecte),
+pour générer des URL en https et lire la bonne adresse IP cliente.
+
+Au démarrage, `docker/entrypoint.sh` attend la base, crée ou met à jour le schéma
 (`doctrine:schema:update --force`) et exécute `app:init`. Le mot de passe par défaut de `admin` est `changeme` : à changer.
 Dans un fichier `.env`, les `$` du hash bcrypt doivent être doublés (`$$`).
 
