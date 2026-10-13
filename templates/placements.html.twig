@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% import '_macros.html.twig' as m %}
+{% block title %}Placements{% endblock %}
+{% block body %}
+<h1>Placements</h1><p class="sub">{{ placements|length }} placement(s) · du plus récent au plus ancien</p>
+<div class="card" style="padding:6px"><table class="list">
+    <thead><tr><th>Enfant</th><th>Famille</th><th>Placé le</th><th>Jugement</th><th>Œuvre</th><th>Prochaine surveillance</th></tr></thead>
+    <tbody>
+    {% for p in placements %}
+        {% set prochaine = null %}{% for s in p.surveillances %}{% if not prochaine and not s.dateRealisee and s.datePrevue %}{% set prochaine = s.datePrevue %}{% endif %}{% endfor %}
+        <tr><td><a class="strong" href="{{ path('demande_show', {id: p.demande.id}) }}">{{ p.nomEnfant }} {{ p.prenomEnfant }}</a></td>
+            <td><a href="{{ path('dossier_show', {id: p.demande.dossier.id}) }}">{{ p.demande.dossier.libelle }}</a></td>
+            <td>{{ m.date(p.datePlacement) }}</td><td>{{ m.date(p.dateJugement) }}</td><td>{{ p.oeuvre ?: '—' }}</td><td>{{ m.date(prochaine) }}</td></tr>
+    {% else %}<tr><td colspan="6" class="empty">Aucun placement enregistré.</td></tr>{% endfor %}
+    </tbody></table></div>
+{% endblock %}

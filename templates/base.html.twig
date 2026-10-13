@@ -3,52 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Adoptions{% endblock %}</title>
-    <style>
-        :root { --bg:#f6f7f9; --fg:#1d2733; --muted:#5d6b7a; --line:#d9dee5; --brand:#1f5fa8; --card:#fff; --danger:#b3261e; --ok:#1b7a43; }
-        @media (prefers-color-scheme: dark) { :root { --bg:#14181d; --fg:#e6eaee; --muted:#9aa6b2; --line:#2c343d; --brand:#6aa7ee; --card:#1c2229; --danger:#ff8a80; --ok:#6fd49a; } }
-        * { box-sizing: border-box; }
-        body { margin:0; font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
-        a { color:var(--brand); }
-        header { background:var(--card); border-bottom:1px solid var(--line); padding:0 16px; display:flex; flex-wrap:wrap; gap:4px 20px; align-items:center; }
-        header .brand { font-weight:700; padding:12px 0; text-decoration:none; }
-        details.menu { position:relative; }
-        details.menu summary { cursor:pointer; padding:12px 0; list-style:none; }
-        details.menu[open] > div { position:absolute; z-index:5; background:var(--card); border:1px solid var(--line); border-radius:6px; padding:6px 0; min-width:280px; }
-        details.menu div a { display:block; padding:5px 14px; text-decoration:none; color:var(--fg); }
-        details.menu div a:hover { background:var(--bg); }
-        main { max-width:1100px; margin:0 auto; padding:20px 16px 48px; }
-        h1 { font-size:1.5rem; margin:0 0 16px; } h2 { font-size:1.15rem; margin:28px 0 8px; }
-        table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); }
-        th, td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
-        th { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
-        .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
-        dl { margin:0; display:grid; grid-template-columns:max-content 1fr; gap:4px 14px; } dt { color:var(--muted); }
-        .btn { display:inline-block; padding:6px 12px; border:1px solid var(--brand); border-radius:6px; background:var(--brand); color:#fff; text-decoration:none; cursor:pointer; font:inherit; }
-        .btn.sec { background:transparent; color:var(--brand); } .btn.danger { background:transparent; color:var(--danger); border-color:var(--danger); }
-        .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:12px 0; } .actions form { margin:0; }
-        .flash { padding:10px 14px; border-radius:6px; margin-bottom:12px; border:1px solid var(--line); background:var(--card); }
-        .flash.success { border-color:var(--ok); } .flash.danger { border-color:var(--danger); }
-        form div.row { margin-bottom:10px; } form label { display:block; font-weight:600; margin-bottom:2px; }
-        input[type=text], input[type=date], input[type=number], input[type=email], select, textarea { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); font:inherit; }
-        .form-error, form ul { color:var(--danger); margin:2px 0; padding-left:18px; }
-        .muted { color:var(--muted); }
-    </style>
+    <title>{% block title %}Adoptions{% endblock %} · Adoptions</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
-<header>
-    <a class="brand" href="{{ path('home') }}">Adoptions</a>
-    <a href="{{ path('dossier_index') }}">Dossiers</a>
-    {% for groupe, items in menus() %}
-        <details class="menu"><summary>{{ groupe }}</summary>
-            <div>{% for slug, c in items %}<a href="{{ path('crud_index', {slug: slug}) }}">{{ c.title }}</a>{% endfor %}</div>
-        </details>
-    {% endfor %}
-</header>
-<main>
-    {% for type, messages in app.flashes %}{% for m in messages %}<div class="flash {{ type }}">{{ m }}</div>{% endfor %}{% endfor %}
-    {% block body %}{% endblock %}
-</main>
+{% set route = app.request.attributes.get('_route') ?? '' %}
+<a class="skip" href="#contenu">Aller au contenu</a>
+<div class="app">
+<aside>
+    <div class="logo">▣ Adoptions</div>
+    <a class="nav {{ route == 'home' ? 'on' }}" href="{{ path('home') }}">🏠 Accueil</a>
+    <a class="nav {{ route starts with 'dossier' or route starts with 'demande' ? 'on' }}" href="{{ path('dossier_index') }}">📁 Dossiers</a>
+    {% set retards = nb_retards() %}
+    <a class="nav {{ route == 'taches' ? 'on' }}" href="{{ path('taches') }}">✅ À traiter{% if retards %} <span class="badge b-bad">{{ retards }}</span>{% endif %}</a>
+    <a class="nav {{ route == 'placements' ? 'on' }}" href="{{ path('placements') }}">👶 Placements</a>
+    <a class="nav {{ route == 'commissions' ? 'on' }}" href="{{ path('commissions') }}">📅 Commissions</a>
+    <div class="sep">Administration</div>
+    <a class="nav {{ route == 'administration' or route starts with 'crud_' ? 'on' }}" href="{{ path('administration') }}">⚙️ Référentiels</a>
+    <a class="nav" href="{{ path('crud_index', {slug: 'intervenants'}) }}">👥 Intervenants</a>
+    <div class="user">{{ app.user ? app.user.userIdentifier : '' }}</div>
+</aside>
+<div>
+    <div class="top">
+        <form class="search" role="search" action="{{ path('recherche') }}" method="get">
+            🔍 <input id="q" name="q" value="{{ app.request.query.get('q') }}" placeholder="Rechercher un dossier, une personne, un n° de demande…" aria-label="Recherche" autocomplete="off"><kbd>Ctrl K</kbd>
+        </form>
+        <a class="btn p" href="{{ path('dossier_new') }}">+ Nouveau dossier</a>
+    </div>
+    <main id="contenu">
+        {% for type, messages in app.flashes %}{% for m in messages %}<div class="flash {{ type }}" role="status">{{ m }}</div>{% endfor %}{% endfor %}
+        {% block body %}{% endblock %}
+    </main>
+</div>
+</div>
+<script src="{{ asset('js/app.js') }}" defer></script>
 </body>
 </html>

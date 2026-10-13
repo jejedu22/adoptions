@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+{% block title %}Référentiels{% endblock %}
+{% block body %}
+<h1>Référentiels</h1><p class="sub">Les listes de valeurs utilisées dans les dossiers.</p>
+{% for groupe, items in menus %}
+<div class="group"><h2>{{ groupe == 'Définir' ? 'Listes de choix' : 'Annuaires et références' }}</h2>
+    <div class="cards3">{% for slug, c in items %}<a class="card" href="{{ path('crud_index', {slug: slug}) }}"><b>{{ c.title }}</b><span>Consulter et modifier</span></a>{% endfor %}</div></div>
+{% endfor %}
+{% endblock %}

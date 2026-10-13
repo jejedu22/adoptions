@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+{% import '_macros.html.twig' as m %}
+{% block title %}À traiter{% endblock %}
+{% block body %}
+<h1>À traiter</h1><p class="sub">Toutes les échéances regroupées, sans ouvrir chaque dossier.</p>
+<div class="chips">{% for k, l in filtres %}<a class="chip {{ k == filtre ? 'on' }}" href="{{ path('taches', {filtre: k}) }}">{{ l }} ({{ compteurs[k] }})</a>{% endfor %}</div>
+<div class="card">
+    {% for t in taches %}{{ m.tache(t, path('taches', {filtre: filtre})) }}{% else %}<p class="empty">🎉 Aucune action dans cette catégorie.</p>{% endfor %}
+</div>
+{% endblock %}

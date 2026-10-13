@@ -21,6 +21,18 @@ Pour le changer : `php -r 'echo password_hash("nouveau", PASSWORD_BCRYPT);'` pui
 La base est SQLite par défaut (`DATABASE_URL` dans `.env`). Pour MySQL, changez cette variable puis créez le schéma avec
 `php bin/console doctrine:schema:create` (les fichiers de `migrations/` sont générés pour SQLite).
 
+## Interface
+
+Navigation latérale (Accueil, Dossiers, À traiter, Placements, Commissions, Référentiels), recherche globale (Ctrl K),
+thème clair/sombre automatique. Parcours principaux :
+
+- **Accueil** : indicateurs et actions prioritaires (rapports en retard, décisions à saisir, agréments à réactualiser).
+- **À traiter** (`/a-traiter`) : toutes les échéances, filtrables ; « Reçu aujourd'hui » enregistre la réception d'un rapport.
+- **Dossiers** : filtres par statut, prochaine étape de chaque dossier ; fiche avec frise d'avancement (demande → dossier reçu →
+  rapports → commission → agrément), échéancier et onglets ; assistant de création en 4 étapes.
+- Le statut et la prochaine étape sont déduits des données (`App\Service\StatutCalculator`), les échéances par `App\Service\TacheFinder`.
+  Une maquette statique est conservée dans `docs/maquette-ihm.html`.
+
 ## Correspondance avec l'ancienne application
 
 | VB6 | Symfony |

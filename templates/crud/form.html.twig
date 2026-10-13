@@ -1,16 +1,10 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ config.title }}{% endblock %}
 {% block body %}
-<h1>{{ config.title }}</h1>
+<p class="sub" style="margin:0 0 8px"><a href="{{ parent is not null ? (parent.demande is defined ? path('demande_show', {id: parent.demande.id}) : (parent.dossier is defined ? path('demande_show', {id: parent.id}) : path('dossier_show', {id: parent.id}))) : path('crud_index', {slug: slug}) }}">← Retour</a></p>
+<h1>{{ entity.id ? 'Modifier' : 'Nouveau' }} · {{ config.title|lower }}</h1>
 {{ form_start(form) }}
-    <div class="card">{{ form_widget(form) }}</div>
-    <div class="actions">
-        <button class="btn" type="submit">Valider</button>
-        {% if parent is not null %}
-            <a class="btn sec" href="{{ parent.demande is defined ? path('demande_show', {id: parent.demande.id}) : (parent.dossier is defined ? path('demande_show', {id: parent.id}) : path('dossier_show', {id: parent.id})) }}">Annuler</a>
-        {% else %}
-            <a class="btn sec" href="{{ path('crud_index', {slug: slug}) }}">Annuler</a>
-        {% endif %}
-    </div>
+    <div class="card" style="max-width:780px"><div class="formgrid">{{ form_widget(form) }}</div>
+    <div class="foot"><a class="btn" href="{{ parent is not null ? (parent.demande is defined ? path('demande_show', {id: parent.demande.id}) : (parent.dossier is defined ? path('demande_show', {id: parent.id}) : path('dossier_show', {id: parent.id}))) : path('crud_index', {slug: slug}) }}">Annuler</a><button class="btn p" type="submit">Valider</button></div></div>
 {{ form_end(form) }}
 {% endblock %}

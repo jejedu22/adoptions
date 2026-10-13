@@ -1,19 +1,25 @@
 {% extends 'base.html.twig' %}
+{% import '_macros.html.twig' as m %}
+{% block title %}Accueil{% endblock %}
 {% block body %}
-<h1>Gestion des adoptions</h1>
-<div class="grid">
-    <div class="card"><strong>{{ nbDossiers }}</strong> dossier(s)<div class="actions"><a class="btn" href="{{ path('dossier_index') }}">Gérer les dossiers</a></div></div>
-    <div class="card"><strong>{{ nbDemandes }}</strong> demande(s)</div>
+<h1>Bonjour{{ app.user ? ' ' ~ app.user.userIdentifier|capitalize }} 👋</h1>
+<p class="sub">Voici ce qui demande votre attention aujourd'hui.</p>
+<div class="grid g4">
+    <a class="card kpi" href="{{ path('dossier_index') }}" style="color:inherit;text-decoration:none"><b>{{ actifs }}</b><span>dossiers actifs</span></a>
+    <a class="card kpi" href="{{ path('taches') }}" style="color:inherit;text-decoration:none"><b style="color:var(--bad)">{{ retards }}</b><span>actions en retard</span></a>
+    <a class="card kpi" href="{{ path('taches', {filtre: 'tout'}) }}" style="color:inherit;text-decoration:none"><b style="color:var(--info,var(--brand))">{{ reactualisations }}</b><span>agréments à réactualiser</span></a>
+    <a class="card kpi" href="{{ path('commissions') }}" style="color:inherit;text-decoration:none"><b>{{ commissions }}</b><span>décisions à saisir</span></a>
 </div>
-<h2>Demandes à actualiser</h2>
-<table>
-    <thead><tr><th>Dossier</th><th>Demande</th><th>Date</th><th></th></tr></thead>
-    <tbody>
-    {% for d in aActualiser %}
-        <tr><td>{{ d.dossier.numero }}</td><td>n° {{ d.numero }}</td><td>{{ d.dateDemande ? d.dateDemande|date('d/m/Y') : '' }}</td><td><a href="{{ path('demande_show', {id: d.id}) }}">Ouvrir</a></td></tr>
-    {% else %}
-        <tr><td colspan="4" class="muted">Aucune demande à actualiser.</td></tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2>À traiter en priorité</h2>
+        {% for t in taches %}{{ m.tache(t, path('home')) }}{% else %}<p class="empty">🎉 Rien d'urgent : tout est à jour.</p>{% endfor %}
+        {% if totalTaches > taches|length %}<p style="margin:12px 0 0"><a href="{{ path('taches') }}">Voir les {{ totalTaches }} actions →</a></p>{% endif %}</div>
+    <div class="card"><h2>Accès rapides</h2>
+        <p><a class="btn" style="display:block" href="{{ path('dossier_new') }}">➕ Créer un dossier</a></p>
+        <p><a class="btn" style="display:block" href="{{ path('dossier_index') }}">🔎 Retrouver un dossier</a></p>
+        <p><a class="btn" style="display:block" href="{{ path('taches', {filtre: 'tout'}) }}">📅 Voir l'échéancier</a></p>
+        <h2 style="margin-top:20px">Récemment consultés</h2>
+        {% for d in recents %}<p style="margin:4px 0"><a href="{{ path('dossier_show', {id: d.id}) }}">{{ d.libelle }}</a> <span class="muted">· {{ d.numero }}</span></p>
+        {% else %}<p class="muted">Les dossiers que vous ouvrez apparaîtront ici.</p>{% endfor %}</div>
+</div>
 {% endblock %}

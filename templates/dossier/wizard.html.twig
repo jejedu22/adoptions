@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nouveau dossier{% endblock %}
+{% block body %}
+<p class="sub" style="margin:0 0 8px"><a href="{{ path('dossier_index') }}">← Annuler</a></p>
+<h1>Nouveau dossier</h1><p class="sub">Quatre étapes. Seuls le numéro, le nom et la date de la demande sont obligatoires.</p>
+{{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+<div class="card" style="max-width:780px">
+    <div class="steps" id="wsteps">
+        <div class="step cur"><i>1</i>Demandeur</div><div class="step"><i>2</i>Foyer</div><div class="step"><i>3</i>Projet</div><div class="step"><i>4</i>Vérifier</div>
+    </div>
+    <div class="wiz on"><h2 style="margin-top:22px">Qui dépose la demande ?</h2>
+        <div class="formgrid">{{ form_row(form.numero) }}<span></span>{{ form_row(form.nom) }}{{ form_row(form.prenom) }}{{ form_row(form.dateNaissance) }}{{ form_row(form.profession) }}</div>
+        {{ form_row(form.adresse1) }}
+        <div class="formgrid">{{ form_row(form.commune) }}{{ form_row(form.telephone) }}{{ form_row(form.codePostal) }}{{ form_row(form.ville) }}</div></div>
+    <div class="wiz"><h2 style="margin-top:22px">Situation du foyer</h2>
+        <div class="formgrid">{{ form_row(form.situationFamiliale) }}<span></span>{{ form_row(form.dateMariage) }}{{ form_row(form.lieuMariage) }}</div>
+        {{ form_row(form.conjoint) }}
+        <div id="conjoint-box" class="card" style="margin-top:8px"><h2>Conjoint ou conjointe</h2><div class="formgrid">{{ form_row(form.conjointNom) }}{{ form_row(form.conjointPrenom) }}{{ form_row(form.conjointDateNaissance) }}</div></div></div>
+    <div class="wiz"><h2 style="margin-top:22px">Le projet d'adoption</h2>
+        <div class="formgrid">{{ form_row(form.dateDemande) }}{{ form_row(form.nature) }}{{ form_row(form.type) }}{{ form_row(form.nombreEnfants) }}{{ form_row(form.origineEthnique) }}</div>
+        {{ form_row(form.fratrie) }}
+        <p class="muted">Les dates prévues de l'échéancier seront calculées à partir des délais paramétrés.</p></div>
+    <div class="wiz"><h2 style="margin-top:22px">Tout est correct ?</h2><dl id="recap" class="summary"></dl></div>
+    <div class="foot"><button type="button" class="btn" id="prev" hidden>← Retour</button><span></span>
+        <button type="button" class="btn p" id="next">Continuer →</button><button type="submit" class="btn p" id="submit" hidden>Créer le dossier ✓</button></div>
+</div>
+{{ form_rest(form) }}
+{{ form_end(form) }}
+{% endblock %}

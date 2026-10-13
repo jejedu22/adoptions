@@ -166,4 +166,36 @@ class Dossier implements \Stringable
     }
 
     public function __toString(): string { return (string) $this->numero; }
+
+    /** Intitulé du dossier : « Nom Prénom » du demandeur, suivi du prénom du conjoint s'il existe. */
+    public function getLibelle(): string
+    {
+        $demandeur = null;
+        $autres = [];
+        foreach ($this->individus as $i) {
+            if (null === $demandeur && 'DE' === $i->getType()) {
+                $demandeur = $i;
+            } else {
+                $autres[] = $i;
+            }
+        }
+        $demandeur ??= array_shift($autres);
+        if (null === $demandeur) {
+            return 'Dossier '.$this->numero;
+        }
+        $libelle = trim($demandeur->getNom().' '.$demandeur->getPrenom());
+        if ($autres) {
+            $conjoint = $autres[0];
+            $libelle .= ' & '.($conjoint->getNom() === $demandeur->getNom() ? (string) $conjoint->getPrenom() : trim($conjoint->getNom().' '.$conjoint->getPrenom()));
+        }
+
+        return $libelle;
+    }
+
+    public function getInitiales(): string
+    {
+        $mots = preg_split('/[\s&]+/u', $this->getLibelle(), -1, PREG_SPLIT_NO_EMPTY);
+
+        return mb_strtoupper(mb_substr($mots[0] ?? '?', 0, 1).mb_substr($mots[1] ?? '', 0, 1));
+    }
 }

@@ -1,0 +1,27 @@
+{% macro date(v) %}{{ v ? v|date('d/m/Y') : '—' }}{% endmacro %}
+
+{% macro badge(statut) %}<span class="badge b-{{ statut.ton }}">{{ statut.libelle }}</span>{% endmacro %}
+
+{% macro frise(statut) %}
+<div class="steps">
+    {% for e in statut.etapes %}
+        <div class="step {{ e.etat == 'done' ? 'done' : (e.etat == 'cur' ? 'cur' : '') }}"><i>{{ e.etat == 'done' ? '✓' : loop.index }}</i>{{ e.libelle }}{% if e.detail %}<br>{{ e.detail }}{% endif %}</div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro tache(t, retour) %}
+<div class="task">
+    <span class="badge b-{{ t.ton }}">{{ t.etiquette }}</span>
+    <div class="t"><a class="strong" href="{{ path('dossier_show', {id: t.demande.dossier.id}) }}"><b>{{ t.demande.dossier.libelle }}</b></a> — {{ t.libelle|lower }}
+        <small>{{ t.detail }}{% if t.echeance %} · échéance {{ t.echeance|date('d/m/Y') }}{% endif %}</small></div>
+    {% if t.interventionId %}
+        <form method="post" action="{{ path('intervention_recu', {id: t.interventionId}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('recu' ~ t.interventionId) }}"><input type="hidden" name="retour" value="{{ retour }}">
+            <button class="btn s" type="submit" title="Marque le rapport comme reçu aujourd'hui">Reçu aujourd'hui</button></form>
+    {% elseif t.type == 'decision' %}
+        <a class="btn s" href="{{ path('crud_new', {slug: 'decisions', parent: t.demande.id}) }}">Saisir</a>
+    {% endif %}
+    <a class="btn s" href="{{ path('demande_show', {id: t.demande.id}) }}">Ouvrir</a>
+</div>
+{% endmacro %}
