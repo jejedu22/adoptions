@@ -22,7 +22,7 @@ final class AgrementCalculator
     public const PROVENANCE_DEMANDE_INITIALE = -2;
     public const PROVENANCE_RECOURS_ADMINISTRATIF = -1;
 
-    /** @param iterable<Decision> $decisions décisions triées par date de commission puis identifiant */
+    /** @param iterable<Decision> $decisions décisions triées par commission initiale puis provenance */
     public function calculer(iterable $decisions): AgrementResult
     {
         $premiereCommission = null;
@@ -86,8 +86,9 @@ final class AgrementCalculator
     public function actualiser(Demande $demande): AgrementResult
     {
         $decisions = $demande->getDecisions()->toArray();
-        usort($decisions, static fn (Decision $a, Decision $b) => [$a->getDateCommission()?->getTimestamp() ?? PHP_INT_MIN, $a->getId() ?? PHP_INT_MAX]
-            <=> [$b->getDateCommission()?->getTimestamp() ?? PHP_INT_MIN, $b->getId() ?? PHP_INT_MAX]);
+        // Ordre de l'ancienne application : commission initiale, puis provenance (commission, recours administratif, recours contentieux)
+        usort($decisions, static fn (Decision $a, Decision $b) => [$a->getCommissionInitiale()?->getTimestamp() ?? PHP_INT_MIN, $a->getProvenance(), $a->getId() ?? PHP_INT_MAX]
+            <=> [$b->getCommissionInitiale()?->getTimestamp() ?? PHP_INT_MIN, $b->getProvenance(), $b->getId() ?? PHP_INT_MAX]);
 
         $resultat = $this->calculer($decisions);
         $demande->setDateAgrement($resultat->dateAgrement)

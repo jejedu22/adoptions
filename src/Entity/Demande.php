@@ -79,7 +79,7 @@ class Demande
 
     /** @var Collection<int, Decision> */
     #[ORM\OneToMany(targetEntity: Decision::class, mappedBy: 'demande', cascade: ['persist','remove'], orphanRemoval: true)]
-    #[ORM\OrderBy(['dateCommission' => 'ASC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(['commissionInitiale' => 'ASC', 'provenance' => 'ASC', 'id' => 'ASC'])]
     private Collection $decisions;
 
     /** @var Collection<int, HistoriqueIntervenant> */
