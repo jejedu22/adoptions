@@ -18,7 +18,8 @@ php -S 127.0.0.1:8000 -t public     # ou symfony serve
 Accès protégé par HTTP Basic : utilisateur `admin`, mot de passe initial `changeme`.
 Pour le changer : `php -r 'echo password_hash("nouveau", PASSWORD_BCRYPT);'` puis renseigner
 `APP_ADMIN_PASSWORD_HASH` dans `.env.local` (entourer la valeur de quotes simples).
-La base est SQLite par défaut (`DATABASE_URL` dans `.env`) ; MySQL/PostgreSQL fonctionnent en changeant cette variable.
+La base est SQLite par défaut (`DATABASE_URL` dans `.env`). Pour MySQL, changez cette variable puis créez le schéma avec
+`php bin/console doctrine:schema:create` (les fichiers de `migrations/` sont générés pour SQLite).
 
 ## Correspondance avec l'ancienne application
 
