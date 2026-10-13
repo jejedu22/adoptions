@@ -1,0 +1,2 @@
+<a href="{{ path('crud_edit', {slug: slug, id: id}) }}">Modifier</a>
+<form method="post" action="{{ path('crud_delete', {slug: slug, id: id}) }}" onsubmit="return confirm('Supprimer ?')"><input type="hidden" name="_token" value="{{ csrf_token('delete' ~ slug ~ id) }}"><button class="btn danger" type="submit">Supprimer</button></form>

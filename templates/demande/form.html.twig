@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+{% block title %}Demande{% endblock %}
+{% block body %}
+<h1>Demande n° {{ demande.numero }} — dossier {{ demande.dossier.numero }}</h1>
+{{ form_start(form) }}
+    <div class="card">{{ form_widget(form) }}</div>
+    <div class="actions"><button class="btn" type="submit">Valider</button><a class="btn sec" href="{{ demande.id ? path('demande_show', {id: demande.id}) : path('dossier_show', {id: demande.dossier.id}) }}">Annuler</a></div>
+{{ form_end(form) }}
+{% endblock %}

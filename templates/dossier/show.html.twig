@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dossier {{ dossier.numero }}{% endblock %}
+{% block body %}
+<h1>Dossier {{ dossier.numero }}</h1>
+<div class="grid">
+    <div class="card"><dl>
+        <dt>Adresse</dt><dd>{{ dossier.adresse1 }} {{ dossier.adresse2 }}<br>{{ dossier.codePostal }} {{ dossier.ville }}</dd>
+        <dt>Téléphone</dt><dd>{{ dossier.telephone }}</dd>
+        <dt>Département</dt><dd>{{ dossier.departement }}</dd>
+        <dt>Commune</dt><dd>{{ dossier.commune }}</dd>
+        <dt>Canton</dt><dd>{{ dossier.canton }}</dd>
+        <dt>Circonscription</dt><dd>{{ dossier.circonscription }}</dd>
+        <dt>Réinstruction</dt><dd>{{ dossier.reinstruction ? 'Oui' : 'Non' }}</dd>
+    </dl></div>
+    <div class="card"><dl>
+        <dt>Situation familiale</dt><dd>{{ dossier.situationFamiliale }}</dd>
+        <dt>Régime matrimonial</dt><dd>{{ dossier.regimeMatrimonial }}</dd>
+        <dt>Mariage</dt><dd>{{ dossier.dateMariage ? dossier.dateMariage|date('d/m/Y') }} {{ dossier.lieuMariage }}</dd>
+    </dl></div>
+</div>
+<div class="actions">
+    <a class="btn" href="{{ path('dossier_edit', {id: dossier.id}) }}">Modifier</a>
+    <form method="post" action="{{ path('dossier_delete', {id: dossier.id}) }}" onsubmit="return confirm('Supprimer ce dossier et tout son contenu ?')">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete_dossier' ~ dossier.id) }}">
+        <button class="btn danger" type="submit">Supprimer</button>
+    </form>
+</div>
+
+<h2>Individus</h2>
+<table>
+    <thead><tr><th>Type</th><th>Nom</th><th>Prénom</th><th>Naissance</th><th></th></tr></thead>
+    <tbody>
+    {% for i in dossier.individus %}
+        <tr><td>{{ i.type == 'DE' ? 'Demandeur' : i.type }}</td><td>{{ i.nom }}</td><td>{{ i.prenom }}</td><td>{{ i.dateNaissance ? i.dateNaissance|date('d/m/Y') }}</td>
+            <td class="actions"><a href="{{ path('crud_edit', {slug: 'individus', id: i.id}) }}">Modifier</a>
+            <form method="post" action="{{ path('crud_delete', {slug: 'individus', id: i.id}) }}" onsubmit="return confirm('Supprimer ?')"><input type="hidden" name="_token" value="{{ csrf_token('deleteindividus' ~ i.id) }}"><button class="btn danger" type="submit">Supprimer</button></form></td></tr>
+    {% else %}<tr><td colspan="5" class="muted">Aucun individu.</td></tr>{% endfor %}
+    </tbody>
+</table>
+<div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'individus', parent: dossier.id}) }}">Ajouter un individu</a></div>
+
+<h2>Demandes</h2>
+<table>
+    <thead><tr><th>N°</th><th>Date</th><th>Nature</th><th>Agrément</th><th></th></tr></thead>
+    <tbody>
+    {% for d in dossier.demandes %}
+        <tr><td>{{ d.numero }}</td><td>{{ d.dateDemande ? d.dateDemande|date('d/m/Y') }}</td><td>{{ d.nature }}</td><td>{{ d.dateAgrement ? d.dateAgrement|date('d/m/Y') : '—' }}</td><td><a href="{{ path('demande_show', {id: d.id}) }}">Ouvrir</a></td></tr>
+    {% else %}<tr><td colspan="5" class="muted">Aucune demande.</td></tr>{% endfor %}
+    </tbody>
+</table>
+<div class="actions"><a class="btn sec" href="{{ path('demande_new', {dossier: dossier.id}) }}">Nouvelle demande</a></div>
+{% endblock %}

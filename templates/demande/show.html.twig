@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+{% block title %}Demande {{ demande.numero }}{% endblock %}
+{% macro d(v) %}{{ v ? v|date('d/m/Y') : '—' }}{% endmacro %}
+{% import _self as m %}
+{% block body %}
+<h1>Demande n° {{ demande.numero }} <small class="muted">— dossier <a href="{{ path('dossier_show', {id: demande.dossier.id}) }}">{{ demande.dossier.numero }}</a></small></h1>
+<div class="grid">
+    <div class="card"><dl>
+        <dt>Date de la demande</dt><dd>{{ m.d(demande.dateDemande) }}</dd>
+        <dt>Nature</dt><dd>{{ demande.nature }}</dd>
+        <dt>Type</dt><dd>{{ demande.type }}</dd>
+        <dt>Enfants souhaités</dt><dd>{{ demande.nombreEnfants }}</dd>
+        <dt>Origine ethnique</dt><dd>{{ demande.origineEthnique }}</dd>
+        <dt>Fratrie</dt><dd>{{ demande.fratrie ? 'Oui' : 'Non' }}</dd>
+        <dt>Assistante maternelle</dt><dd>{{ demande.assistanteMaternelle ? 'Oui' : 'Non' }}</dd>
+        <dt>Sortie</dt><dd>{{ m.d(demande.dateSortie) }} {{ demande.motifSortie }}</dd>
+        <dt>Suspension</dt><dd>{{ m.d(demande.dateSuspension) }} {{ demande.motifSuspension }}</dd>
+    </dl></div>
+    <div class="card"><h3 style="margin-top:0">Agrément</h3><dl>
+        <dt>Date d'agrément</dt><dd>{{ m.d(demande.dateAgrement) }}</dd>
+        <dt>Provenance</dt><dd>{% if demande.provenanceAgrement is null %}—{% elseif demande.provenanceAgrement == -2 %}Commission initiale{% elseif demande.provenanceAgrement == -1 %}Recours administratif{% else %}Recours contentieux{% endif %}</dd>
+        <dt>Date de retrait</dt><dd>{{ m.d(demande.dateRetrait) }}</dd>
+    </dl>
+    <form method="post" action="{{ path('demande_recalcul', {id: demande.id}) }}" class="actions"><input type="hidden" name="_token" value="{{ csrf_token('recalcul' ~ demande.id) }}"><button class="btn sec" type="submit">Recalculer</button></form></div>
+    <div class="card"><h3 style="margin-top:0">Échéancier</h3><dl>
+        {% for label, date in echeancier %}<dt>{{ label }}</dt><dd>{{ m.d(date) }}</dd>{% endfor %}
+    </dl></div>
+</div>
+<div class="actions"><a class="btn" href="{{ path('demande_edit', {id: demande.id}) }}">Modifier la demande</a></div>
+{% if demande.remarques %}<div class="card">{{ demande.remarques|nl2br }}</div>{% endif %}
+
+<h2>Décisions et recours</h2>
+<table>
+    <thead><tr><th>Provenance</th><th>Commission</th><th>Signature</th><th>Dépôt</th><th>Décision</th><th></th></tr></thead>
+    <tbody>
+    {% for x in demande.decisions %}
+        <tr><td>{% if x.provenance == -2 %}Commission initiale{% elseif x.provenance == -1 %}Recours administratif{% else %}{{ x.typeRecours ?: 'Recours contentieux' }}{% endif %}</td>
+            <td>{{ m.d(x.dateCommission) }}</td><td>{{ m.d(x.dateSignature) }}</td><td>{{ m.d(x.dateDepot) }}</td>
+            <td>{{ enum_label(x.deliberation) }}</td><td class="actions">{% include 'demande/_actions.html.twig' with {slug: 'decisions', id: x.id} %}</td></tr>
+    {% else %}<tr><td colspan="6" class="muted">Aucune décision.</td></tr>{% endfor %}
+    </tbody>
+</table>
+<div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'decisions', parent: demande.id}) }}">Ajouter une décision / un recours</a></div>
+
+<h2>Interventions (psychologues et travailleurs sociaux)</h2>
+<table>
+    <thead><tr><th>Intervenant</th><th>Cadre</th><th>Demandé</th><th>Prévu</th><th>Reçu</th><th></th></tr></thead>
+    <tbody>
+    {% for h in demande.historiques %}
+        <tr><td>{{ h.intervenant }}</td><td>{{ enum_label(h.cadre, 'cadre') }}</td><td>{{ m.d(h.dateDemande) }}</td><td>{{ m.d(h.datePrevue) }}</td><td>{{ m.d(h.dateRecu) }}</td>
+            <td class="actions">{% include 'demande/_actions.html.twig' with {slug: 'historiques', id: h.id} %}</td></tr>
+    {% else %}<tr><td colspan="6" class="muted">Aucune intervention.</td></tr>{% endfor %}
+    </tbody>
+</table>
+<div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'historiques', parent: demande.id}) }}">Ajouter une intervention</a></div>
+
+<h2>Enfants souhaités</h2>
+<table>
+    <thead><tr><th>Sexe</th><th>Âge max</th><th>Handicap</th><th></th></tr></thead>
+    <tbody>
+    {% for e in demande.enfants %}
+        <tr><td>{{ enum_label(e.sexe, 'sexe') }}</td><td>{{ e.ageMax }}</td><td>{{ e.handicap ? 'Oui' : 'Non' }}</td><td class="actions">{% include 'demande/_actions.html.twig' with {slug: 'enfants-demandes', id: e.id} %}</td></tr>
+    {% else %}<tr><td colspan="4" class="muted">Aucun enfant souhaité.</td></tr>{% endfor %}
+    </tbody>
+</table>
+<div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'enfants-demandes', parent: demande.id}) }}">Ajouter un enfant souhaité</a></div>
+
+<h2>Placements</h2>
+{% for p in demande.placements %}
+<div class="card" style="margin-bottom:12px">
+    <strong>{{ p.nomEnfant }} {{ p.prenomEnfant }}</strong> — placé le {{ m.d(p.datePlacement) }}, jugement le {{ m.d(p.dateJugement) }} {{ p.oeuvre ? '· ' ~ p.oeuvre }}
+    <div class="actions">{% include 'demande/_actions.html.twig' with {slug: 'placements', id: p.id} %}</div>
+    <table>
+        <thead><tr><th>Surveillance prévue</th><th>Réalisée</th><th>Envoi TGI</th><th>Intervenant</th><th></th></tr></thead>
+        <tbody>
+        {% for s in p.surveillances %}
+            <tr><td>{{ m.d(s.datePrevue) }}</td><td>{{ m.d(s.dateRealisee) }}</td><td>{{ m.d(s.dateEnvoiTgi) }}</td><td>{{ s.intervenant }}</td><td class="actions">{% include 'demande/_actions.html.twig' with {slug: 'surveillances', id: s.id} %}</td></tr>
+        {% else %}<tr><td colspan="5" class="muted">Aucune surveillance.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    <div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'surveillances', parent: p.id}) }}">Ajouter une surveillance</a></div>
+</div>
+{% else %}<p class="muted">Aucun placement.</p>{% endfor %}
+<div class="actions"><a class="btn sec" href="{{ path('crud_new', {slug: 'placements', parent: demande.id}) }}">Ajouter un placement</a></div>
+{% endblock %}
