@@ -11,13 +11,16 @@ FROM php:8.3-apache AS app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libicu-dev libzip-dev unzip default-mysql-client \
     && docker-php-ext-install -j"$(nproc)" intl pdo_mysql zip opcache \
-    && a2enmod rewrite \
+    && a2enmod rewrite remoteip \
     && rm -rf /var/lib/apt/lists/*
 
 ENV APP_ENV=prod \
     APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
     && printf 'opcache.validate_timestamps=0\nopcache.memory_consumption=128\n' > /usr/local/etc/php/conf.d/opcache.ini
+
+COPY docker/apache.conf /etc/apache2/conf-available/symfony.conf
+RUN a2enconf symfony
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
