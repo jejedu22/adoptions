@@ -32,6 +32,24 @@ La base est SQLite par défaut (`DATABASE_URL` dans `.env`). Pour MySQL, changez
 | Échéancier et paramètres | `App\Service\EcheancierCalculator`, entité `Parametre` |
 | Interventions, enfants souhaités, placements, surveillances | entités filles de `Demande` / `Placement` |
 
+## Docker
+
+```bash
+cp .env.docker.example .env.docker      # puis renseigner APP_SECRET, DB_PASSWORD et, si besoin, APP_ADMIN_PASSWORD_HASH
+docker compose --env-file .env.docker up -d --build
+```
+
+L'application est servie sur http://localhost:8080 (variable `APP_PORT`), avec une base MySQL 8.4 persistée dans le
+volume `db_data`. Au démarrage, `docker/entrypoint.sh` attend la base, crée ou met à jour le schéma
+(`doctrine:schema:update --force`) et exécute `app:init`. Le mot de passe par défaut de `admin` est `changeme` : à changer.
+Dans un fichier `.env`, les `$` du hash bcrypt doivent être doublés (`$$`).
+
+Import des données Access depuis le conteneur :
+
+```bash
+docker compose --env-file .env.docker exec app php bin/console app:import-legacy --source=mysql://user:mdp@hote/adoptions_legacy --check
+```
+
 ## Import des données de l'ancienne base
 
 Le fichier `legacy/Access/Adoptions.mdb` n'est qu'un frontal : ses tables sont *liées* à un fichier de données

@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET:?Définissez APP_SECRET dans .env.docker}
+      DATABASE_URL: mysql://adoptions:${DB_PASSWORD:?Définissez DB_PASSWORD}@db:3306/adoptions?serverVersion=8.4&charset=utf8mb4
+      # Hash bcrypt du mot de passe de « admin » (les $ sont à doubler dans un fichier .env : $$)
+      APP_ADMIN_PASSWORD_HASH: ${APP_ADMIN_PASSWORD_HASH:?Définissez APP_ADMIN_PASSWORD_HASH}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: adoptions
+      MYSQL_USER: adoptions
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-${DB_PASSWORD}}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  db_data:
