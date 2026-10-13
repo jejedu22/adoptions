@@ -1,0 +1,8 @@
+.git
+.env.local
+.env.docker
+var
+vendor
+legacy
+tests
+.phpunit.cache

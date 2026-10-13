@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ config.title }}{% endblock %}
+{% block body %}
+<h1>{{ config.title }}</h1>
+<div class="actions"><a class="btn" href="{{ path('crud_new', {slug: slug}) }}">Créer</a></div>
+<table>
+    <thead><tr>{% for c in config.colonnes %}<th>{{ c|replace({'_': ' '})|capitalize }}</th>{% endfor %}<th></th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            {% for c in config.colonnes %}
+                {% set v = attribute(item, c) is defined ? attribute(item, c) : null %}
+                <td>{% if v is same as(true) %}Oui{% elseif v is same as(false) %}Non{% elseif v.timestamp is defined %}{{ v|date('d/m/Y') }}{% else %}{{ v }}{% endif %}</td>
+            {% endfor %}
+            <td class="actions">
+                <a href="{{ path('crud_edit', {slug: slug, id: item.id}) }}">Modifier</a>
+                <form method="post" action="{{ path('crud_delete', {slug: slug, id: item.id}) }}" onsubmit="return confirm('Supprimer cet enregistrement ?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ slug ~ item.id) }}">
+                    <button class="btn danger" type="submit">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="{{ config.colonnes|length + 1 }}" class="muted">Aucun enregistrement.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

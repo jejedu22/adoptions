@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<h1>Gestion des adoptions</h1>
+<div class="grid">
+    <div class="card"><strong>{{ nbDossiers }}</strong> dossier(s)<div class="actions"><a class="btn" href="{{ path('dossier_index') }}">Gérer les dossiers</a></div></div>
+    <div class="card"><strong>{{ nbDemandes }}</strong> demande(s)</div>
+</div>
+<h2>Demandes à actualiser</h2>
+<table>
+    <thead><tr><th>Dossier</th><th>Demande</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for d in aActualiser %}
+        <tr><td>{{ d.dossier.numero }}</td><td>n° {{ d.numero }}</td><td>{{ d.dateDemande ? d.dateDemande|date('d/m/Y') : '' }}</td><td><a href="{{ path('demande_show', {id: d.id}) }}">Ouvrir</a></td></tr>
+    {% else %}
+        <tr><td colspan="4" class="muted">Aucune demande à actualiser.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

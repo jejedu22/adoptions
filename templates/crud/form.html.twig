@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ config.title }}{% endblock %}
+{% block body %}
+<h1>{{ config.title }}</h1>
+{{ form_start(form) }}
+    <div class="card">{{ form_widget(form) }}</div>
+    <div class="actions">
+        <button class="btn" type="submit">Valider</button>
+        {% if parent is not null %}
+            <a class="btn sec" href="{{ parent.demande is defined ? path('demande_show', {id: parent.demande.id}) : (parent.dossier is defined ? path('demande_show', {id: parent.id}) : path('dossier_show', {id: parent.id})) }}">Annuler</a>
+        {% else %}
+            <a class="btn sec" href="{{ path('crud_index', {slug: slug}) }}">Annuler</a>
+        {% endif %}
+    </div>
+{{ form_end(form) }}
+{% endblock %}
