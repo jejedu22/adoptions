@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adoptions — maquette de l'IHM</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--fg:#17202e;--muted:#64708a;--line:#e2e7ef;--brand:#3b5bdb;--brand-soft:#e8edff;--ok:#12805c;--ok-soft:#dff5ec;--warn:#a05a00;--warn-soft:#fff1d6;--bad:#b42318;--bad-soft:#fde7e4;--side:#101828;--sidefg:#c9d1e0}
+@media (prefers-color-scheme:dark){:root{--bg:#0e131c;--card:#171e2b;--fg:#e8ecf4;--muted:#93a0b8;--line:#263044;--brand:#7c97ff;--brand-soft:#223066;--ok:#5fd3a4;--ok-soft:#12372b;--warn:#f2b45a;--warn-soft:#3a2a0e;--bad:#ff8c80;--bad-soft:#3e1a16;--side:#0a0e16}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--fg)}
+button{font:inherit;cursor:pointer}a{color:var(--brand)}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+aside{background:var(--side);color:var(--sidefg);padding:18px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+aside .logo{font-weight:700;font-size:1.1rem;color:#fff;padding:4px 10px 16px}
+aside button.nav{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:8px;cursor:pointer;width:100%}
+aside button.nav:hover{background:rgba(255,255,255,.07)}aside button.nav.on{background:rgba(255,255,255,.14);color:#fff}
+aside .sep{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#6f7b93;padding:16px 12px 4px}
+aside .user{margin-top:auto;font-size:.85rem;padding:10px 12px;border-top:1px solid rgba(255,255,255,.1)}
+.top{display:flex;gap:12px;align-items:center;padding:14px 28px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+.search{flex:1;max-width:560px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--muted)}
+.search input{all:unset;flex:1;color:var(--fg)}kbd{border:1px solid var(--line);border-radius:5px;padding:0 6px;font-size:.75rem;background:var(--card)}
+main{padding:24px 28px 64px;max-width:1180px}
+h1{font-size:1.5rem;margin:0 0 4px}h2{font-size:1.05rem;margin:0 0 12px}.sub{color:var(--muted);margin:0 0 20px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:8px 14px;border-radius:9px}.btn.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.p:hover{filter:brightness(1.08)}.btn.s{padding:4px 10px;font-size:.85rem}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.g2{grid-template-columns:2fr 1fr}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap}aside .sep,aside .user{display:none}.g2{grid-template-columns:1fr}.top{padding:12px 16px}main{padding:16px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.kpi b{font-size:1.9rem;display:block;line-height:1.1}.kpi span{color:var(--muted);font-size:.85rem}
+.task{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}.task:first-of-type{border-top:0}
+.task .t{flex:1}.task small{color:var(--muted);display:block}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:600}
+.b-ok{background:var(--ok-soft);color:var(--ok)}.b-warn{background:var(--warn-soft);color:var(--warn)}.b-bad{background:var(--bad-soft);color:var(--bad)}.b-info{background:var(--brand-soft);color:var(--brand)}.b-mute{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.chip{border:1px solid var(--line);background:var(--card);padding:5px 12px;border-radius:999px;color:var(--fg)}.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+table{width:100%;border-collapse:collapse}th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:8px 12px}
+td{padding:12px;border-top:1px solid var(--line)}tbody tr{cursor:pointer}tbody tr:hover{background:var(--bg)}
+.hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.avatar{width:52px;height:52px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:700;font-size:1.1rem}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:20px 0 18px;overflow-x:auto}.tab{all:unset;cursor:pointer;padding:9px 14px;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap}.tab.on{color:var(--brand);border-color:var(--brand);font-weight:600}
+.next{display:flex;gap:14px;align-items:center;background:var(--brand-soft);border:1px solid var(--brand);border-radius:12px;padding:14px 16px;margin:16px 0}.next .t{flex:1}
+.steps{display:flex;margin:6px 0 4px}.step{flex:1;text-align:center;position:relative;font-size:.8rem;color:var(--muted)}
+.step i{display:grid;place-items:center;width:28px;height:28px;margin:0 auto 6px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-style:normal;position:relative;z-index:1;font-size:.8rem}
+.step:not(:last-child)::after{content:"";position:absolute;top:13px;left:50%;width:100%;height:2px;background:var(--line)}
+.step.done i{background:var(--ok);border-color:var(--ok);color:#fff}.step.done:not(:last-child)::after{background:var(--ok)}.step.cur i{border-color:var(--brand);color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}.step.cur{color:var(--fg);font-weight:600}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;margin:0}dt{color:var(--muted)}dd{margin:0}
+.tl{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid var(--line)}.tl li{position:relative;padding:0 0 16px 14px}.tl li::before{content:"";position:absolute;left:-25px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--brand)}.tl small{color:var(--muted);display:block}
+label{display:block;font-weight:600;margin:12px 0 4px}input.f,select.f,textarea.f{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:inherit}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.hint{color:var(--muted);font-size:.85rem;margin-top:3px}
+.view{display:none}.view.on{display:block}.wiz{display:none}.wiz.on{display:block}.foot{display:flex;justify-content:space-between;margin-top:22px}
+.note{margin-top:28px;border:1px dashed var(--line);border-radius:12px;padding:12px 16px;color:var(--muted);font-size:.88rem}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="logo">▣ Adoptions</div>
+  <button class="nav on" data-v="home">🏠 Accueil</button>
+  <button class="nav" data-v="dossiers">📁 Dossiers</button>
+  <button class="nav" data-v="todo">✅ À traiter <span class="badge b-bad" style="margin-left:auto">7</span></button>
+  <button class="nav" data-v="dossiers">👶 Placements</button>
+  <button class="nav" data-v="home">📅 Commissions</button>
+  <div class="sep">Administration</div>
+  <button class="nav" data-v="home">⚙️ Référentiels</button>
+  <button class="nav" data-v="home">👥 Intervenants</button>
+  <button class="nav" data-v="home">⬆️ Import Access</button>
+  <div class="user">Marie D. · Service adoption<br><a href="#" style="color:var(--sidefg)">Se déconnecter</a></div>
+</aside>
+<div>
+<div class="top">
+  <div class="search">🔍 <input placeholder="Rechercher un dossier, une personne, un n° de demande…"><kbd>Ctrl K</kbd></div>
+  <button class="btn p" id="new1">+ Nouveau dossier</button>
+</div>
+<main>
+
+<!-- ACCUEIL -->
+<section class="view on" id="home">
+  <h1>Bonjour Marie 👋</h1><p class="sub">Voici ce qui demande votre attention aujourd'hui.</p>
+  <div class="grid g4">
+    <div class="card kpi"><b>128</b><span>dossiers actifs</span></div>
+    <div class="card kpi"><b style="color:var(--bad)">7</b><span>actions en retard</span></div>
+    <div class="card kpi"><b style="color:var(--warn)">12</b><span>agréments expirant sous 6 mois</span></div>
+    <div class="card kpi"><b>3</b><span>commissions à préparer</span></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2>À traiter en priorité</h2>
+      <div class="task"><span class="badge b-bad">En retard</span><div class="t"><b>Dupont Marie &amp; Paul</b> — rapport psychologue attendu<small>Demandé le 12/05 · prévu le 12/08 · 62 jours de retard</small></div><button class="btn s" data-v="fiche">Ouvrir</button></div>
+      <div class="task"><span class="badge b-warn">Cette semaine</span><div class="t"><b>Martin Claire</b> — envoyer le dossier à la commission<small>Commission du 24/10</small></div><button class="btn s" data-v="fiche">Ouvrir</button></div>
+      <div class="task"><span class="badge b-info">À actualiser</span><div class="t"><b>Bernard Luc</b> — agrément délivré il y a 20 mois<small>Proposer une réactualisation</small></div><button class="btn s" data-v="fiche">Ouvrir</button></div>
+      <div class="task"><span class="badge b-warn">Surveillance</span><div class="t"><b>Placement Léa P.</b> — 2<sup>e</sup> visite avant jugement<small>Prévue le 30/10 · travailleur social : COLLIN</small></div><button class="btn s" data-v="fiche">Ouvrir</button></div>
+      <p style="margin:12px 0 0"><a href="#" data-v="todo">Voir les 7 actions →</a></p></div>
+    <div class="card"><h2>Accès rapides</h2>
+      <p><button class="btn" style="width:100%;text-align:left" id="new2">➕ Créer un dossier</button></p>
+      <p><button class="btn" style="width:100%;text-align:left" data-v="dossiers">🔎 Retrouver un dossier</button></p>
+      <p><button class="btn" style="width:100%;text-align:left" data-v="todo">📅 Voir l'échéancier</button></p>
+      <h2 style="margin-top:20px">Récemment consultés</h2>
+      <p><a href="#" data-v="fiche">Dupont Marie &amp; Paul</a><br><a href="#" data-v="fiche">Martin Claire</a><br><a href="#" data-v="fiche">Bernard Luc</a></p></div>
+  </div>
+</section>
+
+<!-- DOSSIERS -->
+<section class="view" id="dossiers">
+  <h1>Dossiers</h1><p class="sub">128 dossiers · tri par dernière activité</p>
+  <div class="chips"><button class="chip on">Tous</button><button class="chip">En instruction (41)</button><button class="chip">Agréés (63)</button><button class="chip">Refus / retrait (9)</button><button class="chip">Sortis (15)</button><button class="chip">⚠ À traiter (7)</button></div>
+  <div class="card" style="padding:6px"><table>
+    <thead><tr><th>Dossier</th><th>Demandeur</th><th>Ville</th><th>Statut</th><th>Prochaine étape</th></tr></thead>
+    <tbody>
+      <tr data-v="fiche"><td>9907903</td><td><b>Dupont Marie</b> &amp; Paul</td><td>Nancy</td><td><span class="badge b-warn">En instruction</span></td><td>Rapport psychologue · <span style="color:var(--bad)">en retard</span></td></tr>
+      <tr data-v="fiche"><td>0012455</td><td><b>Martin Claire</b></td><td>Toul</td><td><span class="badge b-info">Commission le 24/10</span></td><td>Envoi du dossier</td></tr>
+      <tr data-v="fiche"><td>0108120</td><td><b>Bernard Luc</b> &amp; Anne</td><td>Lunéville</td><td><span class="badge b-ok">Agréé</span></td><td>Réactualisation avant 03/2027</td></tr>
+      <tr data-v="fiche"><td>0207711</td><td><b>Petit Sophie</b></td><td>Pont-à-Mousson</td><td><span class="badge b-bad">Refus · recours</span></td><td>Décision du tribunal attendue</td></tr>
+      <tr data-v="fiche"><td>0300988</td><td><b>Leroy Thomas</b> &amp; Inès</td><td>Nancy</td><td><span class="badge b-mute">Sorti</span></td><td>—</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- A TRAITER -->
+<section class="view" id="todo">
+  <h1>À traiter</h1><p class="sub">Toutes les échéances regroupées, sans ouvrir chaque dossier.</p>
+  <div class="chips"><button class="chip on">En retard (7)</button><button class="chip">7 prochains jours (5)</button><button class="chip">30 jours (14)</button><button class="chip">Mes dossiers</button></div>
+  <div class="card">
+    <div class="task"><span class="badge b-bad">62 j</span><div class="t"><b>Dupont</b> — rapport psychologue<small>Intervenant : MARTIN</small></div><button class="btn s">Relancer</button><button class="btn s" data-v="fiche">Ouvrir</button></div>
+    <div class="task"><span class="badge b-bad">35 j</span><div class="t"><b>Roux</b> — rapport travailleur social<small>Intervenant : COLLIN</small></div><button class="btn s">Relancer</button><button class="btn s" data-v="fiche">Ouvrir</button></div>
+    <div class="task"><span class="badge b-bad">12 j</span><div class="t"><b>Petit</b> — décision de la commission à saisir<small>Commission du 02/10</small></div><button class="btn s">Saisir</button><button class="btn s" data-v="fiche">Ouvrir</button></div>
+  </div>
+</section>
+
+<!-- FICHE DOSSIER -->
+<section class="view" id="fiche">
+  <p class="sub" style="margin:0 0 8px"><a href="#" data-v="dossiers">← Dossiers</a></p>
+  <div class="hero"><div class="avatar">DM</div><div style="flex:1"><h1 style="margin:0">Marie &amp; Paul Dupont</h1><span class="sub" style="margin:0">Dossier 9907903 · Nancy · 03 83 00 00 00</span></div>
+    <span class="badge b-warn">En instruction</span><button class="btn">Modifier</button><button class="btn p">+ Action</button></div>
+
+  <div class="next"><span style="font-size:1.6rem">⏰</span><div class="t"><b>Prochaine étape : relancer le psychologue (M. MARTIN)</b><br><span class="muted">Le rapport était prévu le 12/08 — 62 jours de retard.</span></div><button class="btn p">Enregistrer la réception</button><button class="btn">Relancer</button></div>
+
+  <div class="tabs"><button class="tab on">Résumé</button><button class="tab">Demandes (1)</button><button class="tab">Personnes (2)</button><button class="tab">Interventions</button><button class="tab">Placements (0)</button><button class="tab">Historique</button></div>
+
+  <div class="card"><h2>Demande n° 1 — Adoption plénière, demande initiale</h2>
+    <div class="steps">
+      <div class="step done"><i>✓</i>Demande<br>04/04/2025</div><div class="step done"><i>✓</i>Dossier reçu<br>20/04/2025</div>
+      <div class="step cur"><i>3</i>Rapports<br>1 sur 2</div><div class="step"><i>4</i>Commission<br>prévue 24/10</div><div class="step"><i>5</i>Agrément</div></div></div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2>Échéancier</h2><ul class="tl">
+      <li><b>Rapport travailleur social</b> <span class="badge b-ok">reçu</span><small>Demandé 10/05 · reçu le 28/06 (COLLIN)</small></li>
+      <li><b>Rapport psychologue</b> <span class="badge b-bad">en retard</span><small>Demandé 10/05 · prévu le 12/08 (MARTIN)</small></li>
+      <li><b>Commission d'agrément</b> <span class="badge b-mute">à venir</span><small>Prévue le 24/10 — décision à saisir ensuite</small></li></ul></div>
+    <div class="card"><h2>Résumé</h2><dl><dt>Souhait</dt><dd>2 enfants, fratrie acceptée</dd><dt>Origine</dt><dd>Indifférente</dd><dt>Agrément</dt><dd><span class="badge b-mute">pas encore</span></dd><dt>Réinstruction</dt><dd>Non</dd><dt>Référent</dt><dd>M. COLLIN</dd></dl></div>
+  </div>
+</section>
+
+<!-- ASSISTANT -->
+<section class="view" id="wizard">
+  <p class="sub" style="margin:0 0 8px"><a href="#" data-v="dossiers">← Annuler</a></p>
+  <h1>Nouveau dossier</h1><p class="sub">Quatre étapes, vous pouvez enregistrer et reprendre plus tard.</p>
+  <div class="card" style="max-width:760px">
+    <div class="steps" id="wsteps"><div class="step cur"><i>1</i>Demandeur</div><div class="step"><i>2</i>Foyer</div><div class="step"><i>3</i>Projet</div><div class="step"><i>4</i>Vérifier</div></div>
+    <div class="wiz on"><h2 style="margin-top:20px">Qui dépose la demande ?</h2>
+      <div class="two"><div><label>Nom</label><input class="f" value="Dupont"></div><div><label>Prénom</label><input class="f" value="Marie"></div></div>
+      <div class="two"><div><label>Date de naissance</label><input class="f" type="date"></div><div><label>Profession</label><select class="f"><option>Choisir…</option><option>Infirmière</option></select></div></div>
+      <label>Adresse</label><input class="f" placeholder="Commencez à taper : la commune, le canton et la circonscription se remplissent seuls"><p class="hint">✨ Le canton et la circonscription sont déduits de la commune.</p>
+      <label>Téléphone</label><input class="f"></div>
+    <div class="wiz"><h2 style="margin-top:20px">Situation du foyer</h2>
+      <div class="two"><div><label>Situation familiale</label><select class="f"><option>Mariés</option><option>Célibataire</option><option>PACS</option></select></div><div><label>Date et lieu du mariage</label><input class="f" type="date"></div></div>
+      <label><input type="checkbox"> Ajouter le conjoint ou la conjointe</label><p class="hint">Si coché, les mêmes champs vous seront proposés pour la deuxième personne.</p></div>
+    <div class="wiz"><h2 style="margin-top:20px">Le projet d'adoption</h2>
+      <div class="two"><div><label>Date de la demande</label><input class="f" type="date"></div><div><label>Nature</label><select class="f"><option>Adoption plénière</option></select></div></div>
+      <div class="two"><div><label>Nombre d'enfants souhaités</label><input class="f" type="number" value="1"></div><div><label>Origine ethnique</label><select class="f"><option>Indifférente</option></select></div></div>
+      <label><input type="checkbox"> Fratrie acceptée</label>
+      <p class="hint">Les dates prévues de l'échéancier seront calculées automatiquement.</p></div>
+    <div class="wiz"><h2 style="margin-top:20px">Tout est correct ?</h2>
+      <dl><dt>Demandeur</dt><dd>Marie Dupont</dd><dt>Foyer</dt><dd>Mariés</dd><dt>Projet</dt><dd>1 enfant, adoption plénière</dd><dt>Échéancier</dt><dd>Dossier attendu avant le 04/05 · décision avant le 04/01</dd></dl></div>
+    <div class="foot"><button class="btn" id="prev">← Retour</button><button class="btn p" id="next">Continuer →</button></div>
+  </div>
+</section>
+
+<div class="note"><b>Maquette de proposition</b> — données fictives, navigation cliquable (menu, lignes du tableau, « Nouveau dossier »). Passez en mode sombre pour voir le thème sombre.</div>
+</main>
+</div></div>
+<script>
+const views=document.querySelectorAll('.view'),navs=document.querySelectorAll('aside .nav');
+function go(id){views.forEach(v=>v.classList.toggle('on',v.id===id));navs.forEach(n=>n.classList.toggle('on',n.dataset.v===id&&!n.dataset.skip));scrollTo(0,0)}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-v]');if(t){e.preventDefault();go(t.dataset.v)}
+ if(e.target.closest('#new1,#new2')){go('wizard');step(0)}
+ const c=e.target.closest('.chip');if(c){c.parentNode.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on')}
+ const tb=e.target.closest('.tab');if(tb){tb.parentNode.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));tb.classList.add('on')}});
+let i=0;const w=document.querySelectorAll('.wiz'),ws=document.querySelectorAll('#wsteps .step');
+function step(n){i=Math.max(0,Math.min(w.length-1,n));w.forEach((x,k)=>x.classList.toggle('on',k===i));
+ ws.forEach((s,k)=>{s.className='step'+(k<i?' done':k===i?' cur':'');s.querySelector('i').textContent=k<i?'✓':k+1});
+ document.getElementById('next').textContent=i===w.length-1?'Créer le dossier ✓':'Continuer →'}
+document.getElementById('next').onclick=()=>i===w.length-1?go('fiche'):step(i+1);
+document.getElementById('prev').onclick=()=>step(i-1);
+</script>
+</body>
+</html>
