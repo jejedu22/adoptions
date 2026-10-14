@@ -206,6 +206,12 @@ final class LegacyImporter
 
     private function affecter(object $entity, ClassMetadata $meta, \Symfony\Component\PropertyAccess\PropertyAccessorInterface $accessor, string $prop, mixed $value, ?string $transformation): void
     {
+        // Entités (associations) et valeurs déjà converties : affectées telles quelles
+        if ($meta->hasAssociation($prop) || is_object($value) && !$value instanceof \DateTimeInterface) {
+            $accessor->setValue($entity, $prop, $value);
+
+            return;
+        }
         $mapping = $meta->hasField($prop) ? $meta->getFieldMapping($prop) : null;
         $type = $transformation ?? ($mapping?->type ?? 'string');
         $value = Transformer::apply($type, $value);

@@ -5,7 +5,7 @@
 #   Debian/Ubuntu : apt install mdbtools mariadb-client      macOS : brew install mdbtools mysql-client
 #
 # Usage :
-#   tools/mdb2mysql.sh <fichier.mdb> <base_mysql> [--drop]
+#   tools/mdb2mysql.sh [--drop] <fichier.mdb> <base_mysql>
 #
 # Connexion MySQL via variables d'environnement (valeurs par défaut entre parenthèses) :
 #   MYSQL_HOST (127.0.0.1)  MYSQL_PORT (3306)  MYSQL_USER (root)  MYSQL_PWD (vide)
@@ -13,17 +13,20 @@
 # La base cible est créée si besoin (utf8mb4). Les tables sont recopiées telles quelles, avec leurs noms
 # d'origine : utilisez une base dédiée (ex. adoptions_legacy), pas la base de la nouvelle application.
 # Les requêtes enregistrées d'Access (vues) et les états ne sont pas transférés, seulement les tables.
-# --drop : supprime d'abord les tables existantes du même nom (DROP TABLE IF EXISTS).
+# --drop : supprime puis recrée entièrement la base cible avant le transfert (DROP DATABASE : tout son contenu est perdu).
 set -euo pipefail
 
-if [[ $# -lt 2 ]]; then
+DROP=0
+ARGS=()
+for a in "$@"; do
+    if [[ $a == --drop ]]; then DROP=1; else ARGS+=("$a"); fi
+done
+if [[ ${#ARGS[@]} -ne 2 ]]; then
     sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
 fi
-
-MDB=$1
-DB=$2
-DROP=${3:-}
+MDB=${ARGS[0]}
+DB=${ARGS[1]}
 
 [[ -f $MDB ]] || { echo "Fichier introuvable : $MDB" >&2; exit 1; }
 [[ $DB =~ ^[A-Za-z0-9_]+$ ]] || { echo "Nom de base invalide : $DB (lettres, chiffres et _ uniquement)" >&2; exit 1; }
@@ -34,6 +37,10 @@ done
 MYSQL=(mysql --host="${MYSQL_HOST:-127.0.0.1}" --port="${MYSQL_PORT:-3306}" --user="${MYSQL_USER:-root}" --default-character-set=utf8mb4 --binary-mode)
 [[ -n ${MYSQL_PWD:-} ]] && export MYSQL_PWD
 
+if [[ $DROP == 1 ]]; then
+    echo "Suppression de la base $DB..."
+    "${MYSQL[@]}" -e "DROP DATABASE IF EXISTS \`$DB\`"
+fi
 "${MYSQL[@]}" -e "CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 MYSQL+=("$DB")
 
@@ -41,9 +48,6 @@ MYSQL+=("$DB")
 # et elles sont inutiles pour une copie de travail. Les tables, colonnes et index sont conservés.
 {
     echo "SET FOREIGN_KEY_CHECKS=0; SET NAMES utf8mb4; SET sql_mode='NO_AUTO_VALUE_ON_ZERO';"
-    if [[ $DROP == --drop ]]; then
-        mdb-tables -1 "$MDB" | while IFS= read -r t; do echo "DROP TABLE IF EXISTS \`$t\`;"; done
-    fi
     mdb-schema "$MDB" mysql | grep -viE '^(DROP TABLE|ALTER TABLE .* ADD CONSTRAINT .* FOREIGN KEY)'
 } | "${MYSQL[@]}"
 
