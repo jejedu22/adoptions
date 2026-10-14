@@ -43,7 +43,7 @@ MYSQL+=("$DB")
     if [[ $DROP == --drop ]]; then
         mdb-tables -1 "$MDB" | while IFS= read -r t; do echo "DROP TABLE IF EXISTS \`$t\`;"; done
     fi
-    mdb-schema --backend mysql "$MDB" | grep -v '^DROP TABLE'
+    mdb-schema "$MDB" mysql | grep -v '^DROP TABLE'
 } | "${MYSQL[@]}"
 
 # Données, table par table (dates au format MySQL, transaction par table pour la vitesse).
