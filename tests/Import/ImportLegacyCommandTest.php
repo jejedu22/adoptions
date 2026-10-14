@@ -47,6 +47,10 @@ class ImportLegacyCommandTest extends KernelTestCase
             "INSERT INTO u01_HistoIntervenants VALUES (9907903,176,1,0,'2003-04-10 00:00:00'),(9907903,177,1,-1,'2003-04-10 00:00:00')",
             'CREATE TABLE ENDE (ENDE_NUM INT, ENDE_SEXE TEXT, ENDE_HAND TEXT, ENDE_TRAGE TEXT)',
             "INSERT INTO ENDE VALUES (5108,'F','O','00-03')",
+            'CREATE TABLE ORET (ORET_CODE INT, ORET_LIBELLE TEXT)',
+            "INSERT INTO ORET VALUES (2,'Asie')",
+            'CREATE TABLE ORSO (ORET_CODE INT, ENDE_NUM INT)',
+            'INSERT INTO ORSO VALUES (2,5108)',
             'CREATE TABLE FADE (DEMA_NUM INT, ENDE_NUM INT)',
             'INSERT INTO FADE VALUES (9907903,5108)',
             'CREATE TABLE PLAC (PLAC_NUM INT, DEMA_NUM INT, PLAC_DATE TEXT, PLAC_PUPILL INT)',
@@ -116,6 +120,7 @@ class ImportLegacyCommandTest extends KernelTestCase
         self::assertSame(3, $enfants[0]->getSexe());
         self::assertTrue($enfants[0]->isHandicap());
         self::assertSame(3, $enfants[0]->getAgeMax());
+        self::assertSame('Asie', (string) $enfants[0]->getOrigineEthnique());
 
         $placement = $em->getRepository(Placement::class)->findOneBy([]);
         self::assertSame('Petit', $placement->getNomEnfant());
