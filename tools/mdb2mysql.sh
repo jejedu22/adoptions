@@ -37,13 +37,14 @@ MYSQL=(mysql --host="${MYSQL_HOST:-127.0.0.1}" --port="${MYSQL_PORT:-3306}" --us
 "${MYSQL[@]}" -e "CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 MYSQL+=("$DB")
 
-# Les clés étrangères sont créées par mdb-schema : on les désactive le temps du chargement.
+# Les relations d'Access (clés étrangères) ne sont pas recréées : MySQL en refuse certaines (clé référencée non unique)
+# et elles sont inutiles pour une copie de travail. Les tables, colonnes et index sont conservés.
 {
     echo "SET FOREIGN_KEY_CHECKS=0; SET NAMES utf8mb4; SET sql_mode='NO_AUTO_VALUE_ON_ZERO';"
     if [[ $DROP == --drop ]]; then
         mdb-tables -1 "$MDB" | while IFS= read -r t; do echo "DROP TABLE IF EXISTS \`$t\`;"; done
     fi
-    mdb-schema "$MDB" mysql | grep -v '^DROP TABLE'
+    mdb-schema "$MDB" mysql | grep -viE '^(DROP TABLE|ALTER TABLE .* ADD CONSTRAINT .* FOREIGN KEY)'
 } | "${MYSQL[@]}"
 
 # Données, table par table (dates au format MySQL, transaction par table pour la vitesse).
