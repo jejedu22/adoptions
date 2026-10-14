@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Decision;
+use App\Entity\Enum\Deliberation;
 use App\Entity\Placement;
 use App\Service\Catalogue;
 use App\Service\TacheFinder;
@@ -42,15 +43,51 @@ class TableauController extends AbstractController
     }
 
     #[Route('/commissions', name: 'commissions')]
-    public function commissions(): Response
+    public function commissions(Request $request): Response
     {
-        $decisions = $this->em->createQuery(
-            'SELECT x, d FROM App\Entity\Decision x JOIN x.demande d ORDER BY x.dateCommission DESC, x.id DESC'
-        )->setMaxResults(300)->getResult();
-        $aVenir = array_filter($decisions, static fn (Decision $x) => 0 === $x->getDeliberation());
-        $passees = array_filter($decisions, static fn (Decision $x) => 0 !== $x->getDeliberation());
+        $f = [];
+        foreach (['dossier', 'origine', 'decision', 'commission_du', 'commission_au', 'prevue_du', 'prevue_au'] as $k) {
+            $f[$k] = trim((string) $request->query->get($k, ''));
+        }
+        $date = static fn (string $v): ?\DateTimeImmutable => preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) ? new \DateTimeImmutable($v) : null;
 
-        return $this->render('commissions.html.twig', ['aVenir' => $aVenir, 'passees' => array_slice($passees, 0, 50)]);
+        $qb = $this->em->createQueryBuilder()->select('x', 'd', 'dos')->from(Decision::class, 'x')
+            ->join('x.demande', 'd')->join('d.dossier', 'dos')
+            ->orderBy('x.dateCommission', 'DESC')->addOrderBy('x.id', 'DESC');
+
+        if ('' !== $f['dossier']) {
+            $qb->andWhere('dos.numero LIKE :dossier OR dos.ville LIKE :dossier OR EXISTS (SELECT 1 FROM App\Entity\Individu i WHERE i.dossier = dos AND (i.nom LIKE :dossier OR i.prenom LIKE :dossier))')
+                ->setParameter('dossier', '%'.$f['dossier'].'%');
+        }
+        match ($f['origine']) {
+            'initiale' => $qb->andWhere('x.provenance = -2'),
+            'administratif' => $qb->andWhere('x.provenance = -1'),
+            'contentieux' => $qb->andWhere('x.provenance > 0'),
+            default => null,
+        };
+        if (ctype_digit($f['decision']) && null !== Deliberation::tryFrom((int) $f['decision'])) {
+            $qb->andWhere('x.deliberation = :decision')->setParameter('decision', (int) $f['decision']);
+        }
+        foreach (['commission' => 'x.dateCommission', 'prevue' => 'x.dateDecisionPrevue'] as $key => $champ) {
+            if ($du = $date($f[$key.'_du'])) {
+                $qb->andWhere("$champ >= :{$key}_du")->setParameter($key.'_du', $du);
+            }
+            if ($au = $date($f[$key.'_au'])) {
+                $qb->andWhere("$champ <= :{$key}_au")->setParameter($key.'_au', $au);
+            }
+        }
+
+        $limite = 500;
+        $decisions = $qb->setMaxResults($limite + 1)->getQuery()->getResult();
+
+        return $this->render('commissions.html.twig', [
+            'decisions' => array_slice($decisions, 0, $limite),
+            'tronque' => count($decisions) > $limite,
+            'limite' => $limite,
+            'f' => $f,
+            'filtresActifs' => '' !== implode('', $f),
+            'deliberations' => Deliberation::cases(),
+        ]);
     }
 
     #[Route('/placements', name: 'placements')]

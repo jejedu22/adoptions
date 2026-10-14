@@ -74,3 +74,7 @@ form label{margin-top:10px}form div>label:only-child{display:inline}
 .skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--card);padding:8px;z-index:10}
 @media print{aside,.top,.btn{display:none}.app{display:block}}
 .kpi{display:block}a.kpi:hover{border-color:var(--brand)}
+tr.filtres th{padding:4px 8px 10px;font-weight:400;text-transform:none;letter-spacing:0;vertical-align:top}
+tr.filtres input,tr.filtres select{width:100%;min-width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit;font-size:.88rem}
+tr.filtres .range{display:grid;gap:4px}
+table.filtrable tbody tr{cursor:default}
