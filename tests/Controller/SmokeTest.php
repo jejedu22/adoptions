@@ -109,4 +109,37 @@ class SmokeTest extends WebTestCase
         $client->request('GET', '/a-traiter');
         self::assertSelectorTextContains('body', 'Aucune action');
     }
+
+    public function testFiltresDesCommissions(): void
+    {
+        $client = static::createClient();
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $tool = new SchemaTool($em);
+        $tool->dropSchema($em->getMetadataFactory()->getAllMetadata());
+        $tool->createSchema($em->getMetadataFactory()->getAllMetadata());
+
+        foreach ([['A-1', 'Alpha', 3, '2024-03-10', -2], ['B-2', 'Bravo', 1, '2025-06-01', -2], ['C-3', 'Charlie', 0, '2025-09-01', -1]] as [$num, $nom, $delib, $date, $prov]) {
+            $dossier = (new Dossier())->setNumero($num);
+            $dossier->addIndividu((new \App\Entity\Individu())->setType('DE')->setNom($nom)->setPrenom('X'));
+            $demande = (new \App\Entity\Demande())->setNumero(1);
+            $dossier->addDemande($demande);
+            $demande->addDecision((new \App\Entity\Decision())->setProvenance($prov)->setDeliberation($delib)->setDateCommission(new \DateTimeImmutable($date)));
+            $em->persist($dossier);
+        }
+        $em->flush();
+
+        $client->loginUser(new InMemoryUser('admin', $_SERVER['APP_ADMIN_PASSWORD_HASH'], ['ROLE_USER']));
+        $noms = static function ($crawler) { return $crawler->filter('tbody td a.strong')->each(fn ($n) => $n->text()); };
+
+        self::assertCount(3, $noms($client->request('GET', '/commissions')));
+        self::assertSame(['Alpha X'], $noms($client->request('GET', '/commissions?dossier=alph')));
+        self::assertSame(['Bravo X'], $noms($client->request('GET', '/commissions?decision=1')));
+        self::assertSame(['Charlie X'], $noms($client->request('GET', '/commissions?decision=0')));
+        self::assertSame(['Charlie X'], $noms($client->request('GET', '/commissions?origine=administratif')));
+        self::assertSame(['Charlie X', 'Bravo X'], $noms($client->request('GET', '/commissions?commission_du=2025-01-01')));
+        self::assertSame(['Alpha X'], $noms($client->request('GET', '/commissions?commission_au=2024-12-31')));
+        self::assertSame(['Bravo X'], $noms($client->request('GET', '/commissions?commission_du=2025-01-01&commission_au=2025-07-01&origine=initiale')));
+        self::assertSame([], $noms($client->request('GET', '/commissions?dossier=zzz')));
+        self::assertResponseIsSuccessful();
+    }
 }

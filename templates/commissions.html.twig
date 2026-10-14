@@ -2,20 +2,36 @@
 {% import '_macros.html.twig' as m %}
 {% block title %}Commissions{% endblock %}
 {% block body %}
-<h1>Commissions et recours</h1><p class="sub">Décisions en attente de saisie, puis historique récent.</p>
-{% macro table(decisions, vide) %}
-{% import '_macros.html.twig' as m %}
-<div class="card" style="padding:6px"><table class="list">
-    <thead><tr><th>Dossier</th><th>Type</th><th>Commission</th><th>Prévue</th><th>Décision</th><th></th></tr></thead>
+<div class="pagehead"><div><h1>Commissions et recours</h1>
+    <p class="sub">{{ decisions|length }}{{ tronque ? '+' }} décision(s){% if filtresActifs %} correspondant aux filtres{% endif %} · filtrez directement sous chaque en-tête de colonne.</p></div>
+    {% if filtresActifs %}<a class="btn" href="{{ path('commissions') }}">✕ Réinitialiser les filtres</a>{% endif %}</div>
+<form id="filtres" method="get" action="{{ path('commissions') }}"></form>
+<div class="card" style="padding:6px;overflow-x:auto"><table class="list filtrable">
+    <thead>
+        <tr><th>Dossier</th><th>Origine</th><th>Commission</th><th>Décision prévue</th><th>Décision</th><th></th></tr>
+        <tr class="filtres">
+            <th><input form="filtres" type="search" name="dossier" value="{{ f.dossier }}" placeholder="Nom, n°, ville…" aria-label="Filtrer par dossier"></th>
+            <th><select form="filtres" name="origine" aria-label="Filtrer par origine" data-autosubmit>
+                <option value="">Toutes</option>
+                <option value="initiale" {{ f.origine == 'initiale' ? 'selected' }}>Commission initiale</option>
+                <option value="administratif" {{ f.origine == 'administratif' ? 'selected' }}>Recours administratif</option>
+                <option value="contentieux" {{ f.origine == 'contentieux' ? 'selected' }}>Recours contentieux</option></select></th>
+            <th><div class="range"><input form="filtres" type="date" name="commission_du" value="{{ f.commission_du }}" aria-label="Commission à partir du" data-autosubmit><input form="filtres" type="date" name="commission_au" value="{{ f.commission_au }}" aria-label="Commission jusqu'au" data-autosubmit></div></th>
+            <th><div class="range"><input form="filtres" type="date" name="prevue_du" value="{{ f.prevue_du }}" aria-label="Décision prévue à partir du" data-autosubmit><input form="filtres" type="date" name="prevue_au" value="{{ f.prevue_au }}" aria-label="Décision prévue jusqu'au" data-autosubmit></div></th>
+            <th><select form="filtres" name="decision" aria-label="Filtrer par décision" data-autosubmit>
+                <option value="">Toutes</option>
+                {% for d in deliberations %}<option value="{{ d.value }}" {{ f.decision == d.value|e ? 'selected' }}>{{ d.value == 0 ? 'À saisir' : d.label }}</option>{% endfor %}</select></th>
+            <th><button form="filtres" class="btn s p" type="submit">Filtrer</button></th>
+        </tr>
+    </thead>
     <tbody>
     {% for x in decisions %}
-        <tr><td><a class="strong" href="{{ path('dossier_show', {id: x.demande.dossier.id}) }}">{{ x.demande.dossier.libelle }}</a></td>
+        <tr><td><a class="strong" href="{{ path('dossier_show', {id: x.demande.dossier.id}) }}">{{ x.demande.dossier.libelle }}</a><br><span class="muted">{{ x.demande.dossier.numero }}</span></td>
             <td>{% if x.provenance == -2 %}Commission initiale{% elseif x.provenance == -1 %}Recours administratif{% else %}{{ x.typeRecours ?: 'Recours contentieux' }}{% endif %}</td>
-            <td>{{ m.date(x.dateCommission) }}</td><td>{{ m.date(x.dateDecisionPrevue) }}</td><td>{{ enum_label(x.deliberation) }}</td>
+            <td>{{ m.date(x.dateCommission) }}</td><td>{{ m.date(x.dateDecisionPrevue) }}</td>
+            <td>{% if x.deliberation == 0 %}<span class="badge b-warn">À saisir</span>{% else %}{{ enum_label(x.deliberation) }}{% endif %}</td>
             <td class="right"><a class="btn s" href="{{ path('crud_edit', {slug: 'decisions', id: x.id}) }}">{{ x.deliberation == 0 ? 'Saisir' : 'Modifier' }}</a></td></tr>
-    {% else %}<tr><td colspan="6" class="empty">{{ vide }}</td></tr>{% endfor %}
+    {% else %}<tr><td colspan="6" class="empty">Aucune décision ne correspond{% if filtresActifs %} à ces filtres. <a href="{{ path('commissions') }}">Réinitialiser</a>{% endif %}.</td></tr>{% endfor %}
     </tbody></table></div>
-{% endmacro %}
-<h2>À saisir</h2>{{ _self.table(aVenir, 'Aucune décision en attente.') }}
-<h2 style="margin-top:28px">Décisions récentes</h2>{{ _self.table(passees, 'Aucune décision enregistrée.') }}
+{% if tronque %}<p class="muted">Seules les {{ limite }} premières décisions sont affichées : affinez les filtres.</p>{% endif %}
 {% endblock %}

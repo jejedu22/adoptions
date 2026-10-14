@@ -5,6 +5,14 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && q) { e.preventDefault(); q.focus(); q.select(); }
   });
 
+  // Filtres de colonnes : envoi automatique au changement (listes, dates) ou à la fin de la saisie (texte)
+  document.querySelectorAll('[data-autosubmit]').forEach(function (el) {
+    el.addEventListener('change', function () { el.form.submit(); });
+  });
+  document.querySelectorAll('tr.filtres input[type=search]').forEach(function (el) {
+    var t; el.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { el.form.submit(); }, 600); });
+  });
+
   // Onglets (fiche dossier) : mémorisés dans l'adresse (#demandes)
   var tabs = document.querySelectorAll('[data-tab]');
   function showTab(name) {
