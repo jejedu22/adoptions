@@ -53,8 +53,9 @@ while IFS= read -r table; do
     n=$(mdb-export "$MDB" "$table" | tail -n +2 | wc -l | tr -d ' ')
     printf '%-40s %8s ligne(s)\n' "$table" "$n"
     {
-        echo "SET FOREIGN_KEY_CHECKS=0; SET NAMES utf8mb4; SET autocommit=0;"
-        mdb-export -I mysql -D '%Y-%m-%d %H:%M:%S' -b strip "$MDB" "$table"
+        echo "SET FOREIGN_KEY_CHECKS=0; SET NAMES utf8mb4; SET autocommit=0; SET sql_mode='NO_AUTO_VALUE_ON_ZERO,ALLOW_INVALID_DATES';"
+        # Access stocke parfois des dates « vides » (1900-01-00, 0000-00-00) que MySQL refuse : on les remplace par NULL
+        mdb-export -I mysql -D '%Y-%m-%d %H:%M:%S' -b strip "$MDB" "$table" | sed -E "s/'(1900-01-00|0000-00-00)( 00:00:00)?'/NULL/g"
         echo "COMMIT;"
     } | "${MYSQL[@]}"
     total=$((total + n))
